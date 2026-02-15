@@ -86,13 +86,17 @@ const EmptyState = () => (
     <div className="relative mb-8">
         <div className="absolute inset-0 bg-primary-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
         {/* Updated Logo Container: Circular with Image */}
-        <div className="relative w-32 h-32 bg-white dark:bg-black rounded-full shadow-xl flex items-center justify-center border border-gray-100 dark:border-white/10 overflow-hidden">
+        <a 
+          href="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
+          download="batman-logo.jpg"
+          className="relative w-32 h-32 bg-white dark:bg-black rounded-full shadow-xl flex items-center justify-center border border-gray-100 dark:border-white/10 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+        >
             <img 
               src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
               alt="Lumina Logo" 
               className="w-full h-full object-cover opacity-90"
             />
-        </div>
+        </a>
     </div>
     <h2 className="text-4xl font-black text-gray-800 dark:text-white mb-3 tracking-widest uppercase font-cinzel">Bat Man</h2>
     <p className="text-gray-500 dark:text-gray-300 max-w-sm text-lg leading-relaxed font-sans">

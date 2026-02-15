@@ -40,13 +40,17 @@ const AppContent: React.FC = () => {
                     transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                     className="absolute inset-3 rounded-full border border-b-white/10 border-l-white/5 border-t-transparent border-r-transparent"
                 ></motion.div>
-                <div className="relative w-36 h-36 rounded-full overflow-hidden border border-white/5 shadow-[0_0_60px_rgba(255,255,255,0.05)] bg-black">
+                <a 
+                  href="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
+                  download="batman-logo.jpg"
+                  className="relative w-36 h-36 rounded-full overflow-hidden border border-white/5 shadow-[0_0_60px_rgba(255,255,255,0.05)] bg-black cursor-pointer hover:opacity-80 transition-opacity"
+                >
                      <img 
                         src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
                         alt="Lumina Loading" 
                         className="w-full h-full object-cover opacity-90 scale-105"
                     />
-                </div>
+                </a>
             </div>
             <div className="flex flex-col items-center gap-4">
                 <motion.h1 
