@@ -1,0 +1,8 @@
+{
+  "name": "Bat Man",
+  "description": "A futuristic, cinematic real-time chat application inspired by the Dark Knight.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}

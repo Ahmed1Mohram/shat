@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bat Man</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"'],
+              cinzel: ['"Cinzel"', 'serif'],
+            },
+            colors: {
+              primary: {
+                50: '#f0f4ff',
+                100: '#e0eaff',
+                200: '#c7d9fe',
+                300: '#a4c2fe',
+                400: '#81a4fc',
+                500: '#5b7ff6',
+                600: '#385ceb',
+                700: '#2b46d6',
+                800: '#2639ad',
+                900: '#223289',
+              },
+              dark: {
+                bg: '#02040a',
+                surface: '#0b101b',
+                card: '#111a2d',
+                border: '#1e293b'
+              }
+            },
+            animation: {
+              'blob': 'blob 10s infinite',
+              'fade-in': 'fadeIn 0.8s ease-out',
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(20px, -30px) scale(1.05)' },
+                '66%': { transform: 'translate(-10px, 10px) scale(0.95)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      /* Force Apple Color Emoji as priority for Emoji characters */
+      @font-face {
+        font-family: 'Apple Color Emoji';
+        src: local('Apple Color Emoji');
+      }
+      
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #f8fafc;
+        /* Light Mode: Specific Bat Silhouette Image */
+        background-image: url('components/png-clipart-bat-silhouette-icon-batman-white-mammal-1.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 500px;
+        background-attachment: fixed;
+        transition: background-image 0.5s ease, background-color 0.5s ease;
+        /* Prioritize iOS/Mac Emoji Font */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      }
+      
+      .dark body {
+        background-color: #02040a;
+        /* Dark Mode: Specific Batman Art Image */
+        background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85)), url('components/cae1afd7f0f92784a8fb32251f4ed8f0.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+
+      ::-webkit-scrollbar { width: 5px; height: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+      .dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.3); }
+      .dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      .dark .glass-panel {
+        /* High Transparency in Dark Mode */
+        background: rgba(11, 16, 27, 0.4); 
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+      }
+      
+      .glass-input {
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .dark .glass-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+      }
+      
+      .glass-header {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+      }
+      .dark .glass-header {
+         background: rgba(0, 0, 0, 0.4);
+         backdrop-filter: blur(15px);
+         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.34.0",
+    "uuid": "https://esm.sh/uuid@^13.0.0",
+    "react-hot-toast": "https://esm.sh/react-hot-toast@^2.6.0",
+    "date-fns": "https://esm.sh/date-fns@^4.1.0",
+    "emoji-picker-react": "https://esm.sh/emoji-picker-react@^4.18.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.48.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="text-gray-900 dark:text-gray-100 antialiased selection:bg-blue-600/30 selection:text-white">
+    <div id="root" class="relative z-10 h-screen w-screen overflow-hidden"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
