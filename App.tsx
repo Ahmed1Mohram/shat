@@ -42,7 +42,7 @@ const AppContent: React.FC = () => {
                 ></motion.div>
                 <div className="relative w-36 h-36 rounded-full overflow-hidden border border-white/5 shadow-[0_0_60px_rgba(255,255,255,0.05)] bg-black">
                      <img 
-                        src="components/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
+                        src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
                         alt="Lumina Loading" 
                         className="w-full h-full object-cover opacity-90 scale-105"
                     />

@@ -88,7 +88,7 @@ const EmptyState = () => (
         {/* Updated Logo Container: Circular with Image */}
         <div className="relative w-32 h-32 bg-white dark:bg-black rounded-full shadow-xl flex items-center justify-center border border-gray-100 dark:border-white/10 overflow-hidden">
             <img 
-              src="components/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
+              src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
               alt="Lumina Logo" 
               className="w-full h-full object-cover opacity-90"
             />

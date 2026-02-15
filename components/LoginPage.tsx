@@ -60,7 +60,7 @@ export const LoginPage: React.FC = () => {
                     <div className="relative w-32 h-32 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden filter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] shadow-2xl shadow-black/50">
                          {/* User Provided Image in components folder */}
                         <img 
-                          src="components/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
+                          src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
                           alt="Batman Logo" 
                           className="w-full h-full object-cover opacity-90"
                         />
