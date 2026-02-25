@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/ChatContext';
-import { Smile, Image as ImageIcon, Paperclip, Send, X, Mic, Square, Trash2, Play, Pause, Reply, Check, Monitor, Sparkles, Clapperboard, Flame, BarChart3, Clock, Plus } from 'lucide-react';
+import { Smile, Image as ImageIcon, Paperclip, Send, X, Mic, Square, Trash2, Play, Pause, Reply, Check, Monitor, Sparkles, Clapperboard, Flame, BarChart3, Clock, Plus, Pencil } from 'lucide-react';
 import { Message, PollData } from '../types';
 import EmojiPicker, { Theme as EmojiTheme, EmojiStyle } from 'emoji-picker-react';
 import { useTheme } from '../context/ThemeContext';
@@ -32,6 +32,14 @@ export const InputArea: React.FC = () => {
   const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
   const [showScheduler, setShowScheduler] = useState(false);
   const [scheduledTime, setScheduledTime] = useState('');
+
+  // Drawing Pad States
+  const [showDrawingPad, setShowDrawingPad] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawColor, setDrawColor] = useState('#6366f1');
+  const [brushSize, setBrushSize] = useState(3);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   // State & Refs
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -213,6 +221,67 @@ export const InputArea: React.FC = () => {
       await sendMessage(`⏰ [Scheduled] ${msgText}`);
       toast('Scheduled message sent! ⏰');
     }, delay);
+  };
+
+  // --- Drawing Pad Logic ---
+  const initCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.scale(2, 2);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = drawColor;
+      ctx.lineWidth = brushSize;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctxRef.current = ctx;
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    ctx.strokeStyle = drawColor;
+    ctx.lineWidth = brushSize;
+    ctx.beginPath();
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const x = 'touches' in e ? e.touches[0].clientX - rect.left : (e as React.MouseEvent).clientX - rect.left;
+    const y = 'touches' in e ? e.touches[0].clientY - rect.top : (e as React.MouseEvent).clientY - rect.top;
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing || !ctxRef.current) return;
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const x = 'touches' in e ? e.touches[0].clientX - rect.left : (e as React.MouseEvent).clientX - rect.left;
+    const y = 'touches' in e ? e.touches[0].clientY - rect.top : (e as React.MouseEvent).clientY - rect.top;
+    ctxRef.current.lineTo(x, y);
+    ctxRef.current.stroke();
+  };
+
+  const stopDrawing = () => setIsDrawing(false);
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (canvas && ctx) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+
+  const sendDrawing = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    await sendMessage(dataUrl);
+    setShowDrawingPad(false);
+    toast.success('Doodle sent! \u270F\uFE0F');
   };
 
   // --- Audio Recording Logic ---
@@ -484,6 +553,13 @@ export const InputArea: React.FC = () => {
                 title="Quick Poll"
               >
                 <BarChart3 size={22} strokeWidth={1.5} />
+              </button>
+              <button
+                className="p-2 text-gray-500 hover:text-pink-500 dark:text-gray-400 dark:hover:text-pink-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+                onClick={() => { setShowDrawingPad(true); setTimeout(initCanvas, 100); }}
+                title="Draw & Send"
+              >
+                <Pencil size={22} strokeWidth={1.5} />
               </button>
               <button
                 className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
@@ -802,6 +878,72 @@ export const InputArea: React.FC = () => {
                   Schedule ⏰
                 </button>
               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Drawing Pad Modal */}
+      <AnimatePresence>
+        {showDrawingPad && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4">
+              <button onClick={() => setShowDrawingPad(false)} className="p-2 text-white rounded-full hover:bg-white/10">
+                <X size={24} />
+              </button>
+              <h3 className="text-white font-bold text-lg">✏️ Doodle Pad</h3>
+              <div className="flex gap-2">
+                <button onClick={clearCanvas} className="px-3 py-1.5 text-sm text-white bg-red-500/80 rounded-lg hover:bg-red-500">
+                  Clear
+                </button>
+                <button onClick={sendDrawing} className="px-4 py-1.5 text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg font-bold shadow-lg">
+                  Send ✨
+                </button>
+              </div>
+            </div>
+
+            {/* Canvas */}
+            <div className="flex-1 mx-4 mb-4 rounded-2xl overflow-hidden bg-white shadow-2xl">
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full cursor-crosshair touch-none"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+              />
+            </div>
+
+            {/* Color Picker & Brush Size */}
+            <div className="p-4 flex items-center justify-center gap-4">
+              <div className="flex items-center gap-2">
+                {['#6366f1', '#ef4444', '#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#000000', '#8b5cf6'].map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setDrawColor(color)}
+                    className={`w-7 h-7 rounded-full border-2 transition-transform ${drawColor === color ? 'border-white scale-125 shadow-lg' : 'border-white/30'}`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="15"
+                value={brushSize}
+                onChange={(e) => setBrushSize(Number(e.target.value))}
+                className="w-24 accent-indigo-500"
+              />
+              <span className="text-white/70 text-xs font-mono">{brushSize}px</span>
             </div>
           </motion.div>
         )}
