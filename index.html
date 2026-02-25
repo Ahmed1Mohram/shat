@@ -11,6 +11,8 @@
     <meta property="og:title" content="Bat Man" />
     <meta property="og:description" content="Bat Man - Chat Application" />
     <meta property="og:image" content="https://bat-man1.vercel.app/download.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
@@ -21,15 +23,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
-              sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"'],
+              sans: [
+                '-apple-system',
+                'BlinkMacSystemFont',
+                '"Segoe UI"',
+                'Roboto',
+                'Helvetica',
+                'Arial',
+                'sans-serif',
+                '"Inter"',
+                '"Poppins"',
+                '"SF Pro Display"',
+                '"Helvetica Neue"',
+              ],
+              display: [
+                '-apple-system',
+                'BlinkMacSystemFont',
+                '"Segoe UI"',
+                '"Inter"',
+                '"Poppins"',
+                '"SF Pro Display"',
+                'sans-serif'
+              ],
+              numbers: [
+                '"Inter"',
+                '"SF Pro Display"',
+                '-apple-system',
+                'BlinkMacSystemFont',
+                'sans-serif'
+              ],
               cinzel: ['"Cinzel"', 'serif'],
+              emoji: [
+                '"Apple Color Emoji"',
+                '"Segoe UI Emoji"',
+                '"Segoe UI Symbol"',
+                '"Noto Color Emoji"',
+                '"Android Emoji"',
+                'sans-serif'
+              ],
             },
             colors: {
               primary: {
@@ -44,11 +84,17 @@
                 800: '#2639ad',
                 900: '#223289',
               },
+              batman: {
+                dark: '#0a0f1a',
+                navy: '#1a1a2e',
+                blue: '#16213e',
+                deep: '#0f3460',
+              },
               dark: {
-                bg: '#02040a',
-                surface: '#0b101b',
-                card: '#111a2d',
-                border: '#1e293b'
+                bg: '#0a0f1a',
+                surface: '#0f1419',
+                card: '#1a1a2e',
+                border: '#16213e'
               }
             },
             animation: {
@@ -77,10 +123,28 @@
       }
     </script>
     <style>
-      /* Force Apple Color Emoji as priority for Emoji characters */
+      /* Enhanced Emoji Support - iPhone Style */
       @font-face {
         font-family: 'Apple Color Emoji';
         src: local('Apple Color Emoji');
+      }
+      
+      @font-face {
+        font-family: 'Segoe UI Emoji';
+        src: local('Segoe UI Emoji');
+      }
+      
+      @font-face {
+        font-family: 'Noto Color Emoji';
+        src: local('Noto Color Emoji');
+      }
+      
+      /* Emoji rendering optimization */
+      * {
+        font-variant-emoji: emoji;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       
       body {
@@ -94,14 +158,118 @@
         background-size: 500px;
         background-attachment: fixed;
         transition: background-image 0.5s ease, background-color 0.5s ease;
-        /* Prioritize iOS/Mac Emoji Font */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        /* Enhanced Emoji Font Stack - iPhone Priority */
+        font-family: 
+          "Inter",
+          "Poppins",
+          -apple-system, 
+          BlinkMacSystemFont,
+          "SF Pro Display",
+          "Segoe UI", 
+          Roboto, 
+          "Helvetica Neue", 
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          sans-serif;
+        font-feature-settings: "liga", "kern";
+      }
+      
+      /* Ensure emojis render properly - iPhone Style */
+      .emoji, [class*="emoji"], span[role="img"], .emoji-text {
+        font-family: 
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "Noto Color Emoji",
+          "Android Emoji",
+          "EmojiSymbols",
+          "EmojiOne Mozilla",
+          "Twemoji Mozilla",
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        font-feature-settings: "liga", "kern";
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Enhanced emoji rendering in text - iPhone Style */
+      .emoji-text {
+        font-size: 1em;
+        line-height: 1.6;
+        font-family: 
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "Noto Color Emoji",
+          "Android Emoji",
+          "EmojiSymbols",
+          "EmojiOne Mozilla",
+          "Twemoji Mozilla",
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif !important;
+        font-variant-emoji: emoji;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      .emoji-text * {
+        font-family: inherit !important;
+      }
+      
+      /* Force emoji rendering in all text elements */
+      .emoji-text,
+      .emoji-text span,
+      .emoji-text div,
+      .emoji-text p {
+        font-family: 
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "Noto Color Emoji",
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif !important;
+      }
+      
+      /* Fix for emoji display issues - ensure proper rendering */
+      .emoji-text::before,
+      .emoji-text::after {
+        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+      }
+      
+      /* Specific fix for message bubbles */
+      [class*="rounded-2xl"].emoji-text {
+        font-family: 
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "Noto Color Emoji",
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif !important;
       }
       
       .dark body {
-        background-color: #02040a;
-        /* Dark Mode: Specific Batman Art Image */
-        background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85)), url('/cae1afd7f0f92784a8fb32251f4ed8f0.jpg');
+        background-color: #0a0f1a;
+        /* Dark Mode: Specific Batman Art Image - Premium Dark Theme */
+        background-image: linear-gradient(rgba(10,15,26,0.85), rgba(26,26,46,0.75)), url('/cae1afd7f0f92784a8fb32251f4ed8f0.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -122,12 +290,12 @@
         border: 1px solid rgba(0, 0, 0, 0.05);
       }
       .dark .glass-panel {
-        /* High Transparency in Dark Mode */
-        background: rgba(11, 16, 27, 0.4); 
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        /* Premium Dark Mode - Batman Style */
+        background: rgba(15, 20, 35, 0.6); 
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
       }
       
       .glass-input {
@@ -148,6 +316,95 @@
          background: rgba(0, 0, 0, 0.4);
          backdrop-filter: blur(15px);
          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      
+      /* Emoji rendering fixes for all browsers */
+      @supports (font-variant-emoji: emoji) {
+        * {
+          font-variant-emoji: emoji;
+        }
+      }
+      
+      /* Ensure proper emoji rendering in all contexts */
+      textarea, input, div, span, p {
+        font-variant-emoji: emoji;
+        text-rendering: optimizeLegibility;
+      }
+      
+      /* Fix for Windows emoji rendering */
+      @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        .emoji-text {
+          -webkit-font-feature-settings: "liga", "kern";
+          font-feature-settings: "liga", "kern";
+        }
+      }
+      
+      /* Fix for timestamp display - normal text, no boxes - STRONG OVERRIDE */
+      span[class*="text-\[10\.5px\]"],
+      span[class*="text-\[11px\]"],
+      span[class*="text-\[10px\]"],
+      span[class*="text-\[9px\]"],
+      span[class*="text-gray-500"],
+      span[class*="text-gray-400"],
+      span[class*="text-gray-500"] *,
+      span[class*="text-gray-400"] * {
+        font-variant-numeric: normal !important;
+        font-feature-settings: normal !important;
+        font-variant-ligatures: normal !important;
+        font-kerning: normal !important;
+        letter-spacing: normal !important;
+        word-spacing: normal !important;
+        text-transform: none !important;
+        font-stretch: normal !important;
+        display: inline !important;
+        white-space: nowrap !important;
+        -webkit-font-feature-settings: normal !important;
+        -moz-font-feature-settings: normal !important;
+        -ms-font-feature-settings: normal !important;
+        font-variant: normal !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+      
+      /* Remove any box styling from numbers - ALL POSSIBLE SELECTORS */
+      span[class*="text-gray-500"]::before,
+      span[class*="text-gray-400"]::before,
+      span[class*="text-gray-500"]::after,
+      span[class*="text-gray-400"]::after,
+      span[class*="text-\[10\.5px\]"]::before,
+      span[class*="text-\[10\.5px\]"]::after {
+        display: none !important;
+        content: none !important;
+        background: transparent !important;
+        border: none !important;
+      }
+      
+      /* Override any Tailwind numeric classes */
+      .tabular-nums,
+      [class*="tabular"],
+      [class*="oldstyle"] {
+        font-variant-numeric: normal !important;
+        font-feature-settings: normal !important;
+      }
+      
+      /* Twemoji styling to match text size */
+      img.emoji {
+         height: 1.25em;
+         width: 1.25em;
+         margin: 0 .05em 0 .1em;
+         vertical-align: -0.2em;
+         display: inline-block;
+      }
+      /* Ensure giant emojis for emoji-only messages remain large */
+      .text-6xl img.emoji {
+         height: 1em;
+         width: 1em;
+         margin: 0;
+         vertical-align: baseline;
       }
     </style>
   <script type="importmap">

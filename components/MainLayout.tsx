@@ -2,22 +2,49 @@ import React from 'react';
 import { Sidebar } from './Sidebar';
 import { ChatWindow } from './ChatWindow';
 import { useChat } from '../context/ChatContext';
+import { useTheme } from '../context/ThemeContext';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export const MainLayout: React.FC = () => {
   const { currentConversationId } = useChat();
+  const { theme } = useTheme();
+  const appBgUrl = '/cae1afd7f0f92784a8fb32251f4ed8f0.jpg';
+
+  const lightModeBg = { backgroundColor: '#ffffff', backgroundImage: 'none' };
+  const darkModeBg = (opacity1: number, opacity2: number) => ({
+    backgroundImage: `linear-gradient(rgba(0,0,0,${opacity1}), rgba(0,0,0,${opacity2})), url('${appBgUrl}')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  });
 
   return (
-    <div className="flex h-screen overflow-hidden p-0 md:p-4 lg:p-6 gap-4 bg-transparent dark:bg-transparent transition-colors duration-300">
+    <div className={`flex h-screen overflow-hidden p-0 md:p-4 lg:p-6 gap-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}>
       {/* 
         DESKTOP LAYOUT (md and up):
         Side-by-side, static layout. No sliding between panels, just internal content animations.
       */}
-      <div className="hidden md:flex w-80 lg:w-96 flex-col glass-panel md:rounded-3xl overflow-hidden shadow-2xl z-10">
+      <div
+        className="hidden md:flex w-80 lg:w-96 flex-col md:rounded-3xl overflow-hidden shadow-2xl z-10"
+        style={theme === 'light' ? lightModeBg : {
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.35)), url('${appBgUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
         <Sidebar />
       </div>
 
-      <div className="hidden md:flex flex-1 flex-col glass-panel md:rounded-3xl overflow-hidden shadow-2xl z-10 relative">
+      <div
+        className="hidden md:flex flex-1 flex-col md:rounded-3xl overflow-hidden shadow-2xl z-10 relative"
+        style={theme === 'light' ? lightModeBg : {
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.18), rgba(255,255,255,0.28)), url('${appBgUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
         <AnimatePresence mode="wait">
           {currentConversationId ? (
             <motion.div 
@@ -50,12 +77,20 @@ export const MainLayout: React.FC = () => {
         MOBILE LAYOUT (sm and down):
         Slide transitions between Sidebar (List) and ChatWindow (Detail).
       */}
-      <div className="md:hidden w-full h-full relative overflow-hidden bg-white/90 dark:bg-black">
+      <div
+        className={`md:hidden w-full h-full relative overflow-hidden ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}
+        style={theme === 'light' ? lightModeBg : {
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.12), rgba(0,0,0,0.18)), url('${appBgUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
         <AnimatePresence initial={false} mode="popLayout">
           {currentConversationId ? (
             <motion.div
               key="mobile-chat"
-              className="absolute inset-0 z-20 bg-white/90 dark:bg-black"
+              className="absolute inset-0 z-20 bg-transparent"
               initial={{ x: "100%", opacity: 0.5 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0.5 }}

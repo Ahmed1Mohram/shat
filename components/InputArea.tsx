@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../context/ChatContext';
-import { Smile, Image as ImageIcon, Paperclip, Send, X, Mic, Square, Trash2, Play, Pause } from 'lucide-react';
+import { Smile, Image as ImageIcon, Paperclip, Send, X, Mic, Square, Trash2, Play, Pause, Reply, Check, Monitor, Sparkles, Clapperboard, Flame, BarChart3, Clock, Plus } from 'lucide-react';
+import { Message, PollData } from '../types';
 import EmojiPicker, { Theme as EmojiTheme, EmojiStyle } from 'emoji-picker-react';
 import { useTheme } from '../context/ThemeContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 export const InputArea: React.FC = () => {
-  const { sendMessage } = useChat();
+  const { sendMessage, replyToMessage, messages, currentConversationId, conversations } = useChat();
+  const conversation = conversations.find(c => c.id === currentConversationId);
+  const isVanishMode = conversation?.isVanishMode || false;
   const { theme } = useTheme();
   const [text, setText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -15,41 +18,93 @@ export const InputArea: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  
-  // Preview Player State
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [gifSearch, setGifSearch] = useState('');
+  const [gifs, setGifs] = useState<any[]>([]);
+  const [isLoadingGifs, setIsLoadingGifs] = useState(false);
+  const gifSearchTimerRef = useRef<any>(null);
+  const [isViewOnce, setIsViewOnce] = useState(false);
+
+  // Unique Feature States
+  const [showPollCreator, setShowPollCreator] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [scheduledTime, setScheduledTime] = useState('');
+
+  // State & Refs
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
-  
+  const isCancelledRef = useRef<boolean>(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
+  const activeStreamsRef = useRef<MediaStream[]>([]);
+  const [recordSystemAudio, setRecordSystemAudio] = useState(false);
+  const [isHdMic, setIsHdMic] = useState(false);
 
   useEffect(() => {
-      return () => {
-          if (timerRef.current) clearInterval(timerRef.current);
-      };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, []);
+
+  useEffect(() => {
+    if (audioBlob) {
+      const url = URL.createObjectURL(audioBlob);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [audioBlob]);
+
+  // Listen for reply requests
+  useEffect(() => {
+    const handleReplyRequest = (messageId: string) => {
+      const msg = messages.find(m => m.id === messageId);
+      if (msg) {
+        setReplyingTo(msg);
+      }
+    };
+
+    // This will be called from MessageBubble
+    (window as any).requestReply = handleReplyRequest;
+
+    return () => {
+      delete (window as any).requestReply;
+    };
+  }, [messages]);
 
   const handleSend = async () => {
     if ((!text.trim() && attachments.length === 0 && !audioBlob)) return;
-    
+
     const filesToSend = [...attachments];
-    
+
     // If we have an audio blob, convert to File and push to attachments
     if (audioBlob) {
-        const audioFile = new File([audioBlob], "voice_message.webm", { type: 'audio/webm' });
-        filesToSend.push(audioFile);
+      const audioFile = new File([audioBlob], "voice_message.webm", { type: 'audio/webm' });
+      filesToSend.push(audioFile);
     }
 
-    await sendMessage(text, filesToSend);
-    
+    if (replyingTo) {
+      await replyToMessage(replyingTo.id, text, filesToSend);
+      setReplyingTo(null);
+    } else {
+      await sendMessage(text, filesToSend);
+    }
+
     // Reset state
     setText('');
     setAttachments([]);
     setAudioBlob(null);
     setShowEmoji(false);
     setIsPlayingPreview(false);
+    setIsViewOnce(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -69,223 +124,688 @@ export const InputArea: React.FC = () => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  // --- GIF Search Logic ---
+  const TENOR_API_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ'; // Free Tenor API key
+
+  const fetchGifs = async (query: string) => {
+    setIsLoadingGifs(true);
+    try {
+      const endpoint = query.trim()
+        ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20&media_filter=gif`
+        : `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=gif`;
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      setGifs(data.results || []);
+    } catch (err) {
+      console.error('GIF fetch error:', err);
+    }
+    setIsLoadingGifs(false);
+  };
+
+  useEffect(() => {
+    if (showGifPicker) {
+      fetchGifs('');
+    }
+  }, [showGifPicker]);
+
+  const handleGifSearchChange = (value: string) => {
+    setGifSearch(value);
+    if (gifSearchTimerRef.current) clearTimeout(gifSearchTimerRef.current);
+    gifSearchTimerRef.current = setTimeout(() => fetchGifs(value), 400);
+  };
+
+  const sendGif = async (gifUrl: string) => {
+    setShowGifPicker(false);
+    setGifSearch('');
+    await sendMessage(gifUrl);
+  };
+
+  // --- Poll Logic ---
+  const sendPoll = async () => {
+    if (!pollQuestion.trim()) { toast.error('Add a question!'); return; }
+    const validOptions = pollOptions.filter(o => o.trim());
+    if (validOptions.length < 2) { toast.error('Add at least 2 options!'); return; }
+
+    const pollData: PollData = {
+      question: pollQuestion,
+      options: validOptions.map((text, i) => ({ id: `opt_${i}`, text, votes: [] })),
+      totalVotes: 0,
+    };
+
+    // Send poll as a JSON-encoded message with poll prefix
+    await sendMessage(`📊 POLL: ${pollQuestion}\n${validOptions.map((o, i) => `${i + 1}. ${o}`).join('\n')}`);
+    setShowPollCreator(false);
+    setPollQuestion('');
+    setPollOptions(['', '']);
+    toast.success('Poll sent!');
+  };
+
+  const addPollOption = () => {
+    if (pollOptions.length < 6) setPollOptions([...pollOptions, '']);
+  };
+
+  const updatePollOption = (index: number, value: string) => {
+    const updated = [...pollOptions];
+    updated[index] = value;
+    setPollOptions(updated);
+  };
+
+  const removePollOption = (index: number) => {
+    if (pollOptions.length > 2) setPollOptions(pollOptions.filter((_, i) => i !== index));
+  };
+
+  // --- Schedule Logic ---
+  const sendScheduled = async () => {
+    if (!scheduledTime) { toast.error('Pick a time!'); return; }
+    if (!text.trim()) { toast.error('Write a message first!'); return; }
+    const scheduledDate = new Date(scheduledTime);
+    const now = new Date();
+    if (scheduledDate <= now) { toast.error('Time must be in the future!'); return; }
+
+    const delay = scheduledDate.getTime() - now.getTime();
+    const msgText = text;
+    toast.success(`Message scheduled for ${scheduledDate.toLocaleTimeString()}`);
+    setText('');
+    setShowScheduler(false);
+    setScheduledTime('');
+
+    setTimeout(async () => {
+      await sendMessage(`⏰ [Scheduled] ${msgText}`);
+      toast('Scheduled message sent! ⏰');
+    }, delay);
+  };
+
   // --- Audio Recording Logic ---
 
   const startRecording = async () => {
-      try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorderRef.current = new MediaRecorder(stream);
-          chunksRef.current = [];
+    try {
+      let finalStream: MediaStream;
+      let micStream: MediaStream | null = null;
+      let screenStream: MediaStream | null = null;
+      activeStreamsRef.current = [];
+      isCancelledRef.current = false; // Reset cancellation state
 
-          mediaRecorderRef.current.ondataavailable = (e) => {
-              if (e.data.size > 0) chunksRef.current.push(e.data);
-          };
+      if (recordSystemAudio || isHdMic) {
+        if (recordSystemAudio) {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: true
+          });
+        }
 
-          mediaRecorderRef.current.onstop = () => {
-              const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-              setAudioBlob(blob);
-              stream.getTracks().forEach(track => track.stop()); // Stop mic
-          };
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            sampleRate: 48000,
+            channelCount: 2
+          }
+        });
 
-          mediaRecorderRef.current.start();
-          setIsRecording(true);
-          setRecordingTime(0);
-          timerRef.current = setInterval(() => {
-              setRecordingTime(prev => prev + 1);
-          }, 1000);
+        const audioContext = new AudioContext();
+        const dest = audioContext.createMediaStreamDestination();
 
-      } catch (err) {
-          toast.error("Microphone access denied");
+        if (screenStream && screenStream.getAudioTracks().length > 0) {
+          const screenSource = audioContext.createMediaStreamSource(screenStream);
+          screenSource.connect(dest);
+        }
+
+        if (micStream.getAudioTracks().length > 0) {
+          const micSource = audioContext.createMediaStreamSource(micStream);
+
+          if (isHdMic) {
+            // Apply professional Studio EQ & Compression
+            const bassEQ = audioContext.createBiquadFilter();
+            bassEQ.type = 'lowshelf';
+            bassEQ.frequency.value = 150;
+            bassEQ.gain.value = 10; // Punchy deep bass
+
+            const trebleEQ = audioContext.createBiquadFilter();
+            trebleEQ.type = 'highshelf';
+            trebleEQ.frequency.value = 4000;
+            trebleEQ.gain.value = 3; // Crisp presence
+
+            const compressor = audioContext.createDynamicsCompressor();
+            compressor.threshold.value = -30;
+            compressor.knee.value = 10;
+            compressor.ratio.value = 8;
+            compressor.attack.value = 0.003;
+            compressor.release.value = 0.25;
+
+            micSource.connect(bassEQ);
+            bassEQ.connect(trebleEQ);
+            trebleEQ.connect(compressor);
+            compressor.connect(dest);
+          } else {
+            micSource.connect(dest);
+          }
+        }
+
+        finalStream = dest.stream;
+        activeStreamsRef.current = [];
+        if (screenStream) {
+          activeStreamsRef.current.push(screenStream);
+          screenStream.getVideoTracks().forEach(track => track.stop()); // Stop video immediately
+        }
+        activeStreamsRef.current.push(micStream);
+      } else {
+        finalStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            sampleRate: 48000,
+            channelCount: 2
+          }
+        });
+        activeStreamsRef.current = [finalStream];
       }
+
+      // Use mimeType that's widely supported with higher bitrate for clarity
+      const options: MediaRecorderOptions = { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 256000 };
+      if (!MediaRecorder.isTypeSupported(options.mimeType!)) {
+        // Fallback to default with high bitrate
+        mediaRecorderRef.current = new MediaRecorder(finalStream, { audioBitsPerSecond: 256000 });
+      } else {
+        mediaRecorderRef.current = new MediaRecorder(finalStream, options);
+      }
+
+      chunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        if (chunksRef.current.length > 0 && !isCancelledRef.current) {
+          const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+          const audioFile = new File([blob], "voice_message.webm", { type: 'audio/webm' });
+
+          if (replyingTo) {
+            await replyToMessage(replyingTo.id, '', [audioFile]);
+            setReplyingTo(null);
+          } else {
+            await sendMessage('', [audioFile]);
+          }
+        }
+        activeStreamsRef.current.forEach(s => s.getTracks().forEach(track => track.stop()));
+      };
+
+      mediaRecorderRef.current.onerror = (e) => {
+        console.error('MediaRecorder error:', e);
+        toast.error("Recording error occurred");
+        setIsRecording(false);
+        activeStreamsRef.current.forEach(s => s.getTracks().forEach(track => track.stop()));
+      };
+
+      mediaRecorderRef.current.start(100); // Collect data every 100ms
+      setIsRecording(true);
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (err: any) {
+      console.error('Recording error:', err);
+      toast.error(err.message || "Microphone/Screen access denied. Please check permissions.");
+    }
   };
 
   const stopRecording = () => {
-      if (mediaRecorderRef.current && isRecording) {
-          mediaRecorderRef.current.stop();
-          setIsRecording(false);
-          if (timerRef.current) clearInterval(timerRef.current);
+    if (mediaRecorderRef.current && isRecording) {
+      try {
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          // Request final data block explicitly before stopping for WebAudio streams
+          mediaRecorderRef.current.requestData();
+          setTimeout(() => {
+            if (mediaRecorderRef.current?.state !== 'inactive') {
+              mediaRecorderRef.current?.stop();
+            }
+          }, 100);
+        } else {
+          // Already inactive but we need to stop tracks
+          activeStreamsRef.current.forEach(s => s.getTracks().forEach(track => track.stop()));
+        }
+        setIsRecording(false);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+      } catch (err) {
+        console.error('Error stopping recording:', err);
+        toast.error("Error stopping recording");
+        setIsRecording(false);
+        activeStreamsRef.current.forEach(s => s.getTracks().forEach(track => track.stop()));
       }
+    }
   };
 
   const cancelRecording = () => {
-      if (mediaRecorderRef.current && isRecording) {
-          mediaRecorderRef.current.stop();
-          setIsRecording(false);
-          if (timerRef.current) clearInterval(timerRef.current);
-      }
-      setAudioBlob(null);
-      chunksRef.current = [];
-      setIsPlayingPreview(false);
+    isCancelledRef.current = true;
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    setAudioBlob(null);
+    chunksRef.current = [];
+    setIsPlayingPreview(false);
   };
 
   const togglePreview = () => {
-      if (!previewAudioRef.current) return;
-      if (isPlayingPreview) {
-          previewAudioRef.current.pause();
-      } else {
-          previewAudioRef.current.play();
-      }
-      setIsPlayingPreview(!isPlayingPreview);
+    if (!previewAudioRef.current) return;
+    if (isPlayingPreview) {
+      previewAudioRef.current.pause();
+    } else {
+      previewAudioRef.current.play();
+    }
+    setIsPlayingPreview(!isPlayingPreview);
   };
 
   const formatTime = (seconds: number) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return (
-    <div className="p-3 bg-white dark:bg-dark-surface border-t border-gray-100 dark:border-gray-800">
-      {/* Attachments Preview */}
-      <AnimatePresence>
-        {(attachments.length > 0 || audioBlob) && (
-            <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="flex gap-3 mb-3 overflow-x-auto pb-2 scrollbar-hide"
-            >
-            {attachments.map((file, i) => (
-                <div key={i} className="relative group flex-shrink-0">
-                {file.type.startsWith('image/') ? (
-                    <img src={URL.createObjectURL(file)} className="w-16 h-16 object-cover rounded-xl border dark:border-gray-700" />
-                ) : (
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center border dark:border-gray-600">
-                        <Paperclip size={20} className="text-gray-500" />
-                    </div>
-                )}
-                <button 
-                    onClick={() => removeAttachment(i)}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 shadow-md"
-                >
-                    <X size={12} />
-                </button>
-                </div>
-            ))}
-            
-            {audioBlob && (
-                <div className="relative group flex-shrink-0 flex items-center gap-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 pl-2 pr-4 py-2 rounded-2xl border border-blue-100 dark:border-blue-800">
-                    <button 
-                        onClick={togglePreview}
-                        className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-blue-600 transition-colors"
-                    >
-                        {isPlayingPreview ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
-                    </button>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold text-blue-600 dark:text-blue-300">Voice Note</span>
-                        <span className="text-[10px] text-blue-500/80 dark:text-blue-300/70">{formatTime(recordingTime)}</span>
-                    </div>
-                    
-                    <audio 
-                        ref={previewAudioRef} 
-                        src={URL.createObjectURL(audioBlob)} 
-                        onEnded={() => setIsPlayingPreview(false)} 
-                        className="hidden" 
-                    />
+    <div className={`p-3 relative z-20 transition-all duration-300 ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}>
 
-                    <button 
-                        onClick={cancelRecording}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"
-                    >
-                        <X size={12} />
-                    </button>
-                </div>
-            )}
-            </motion.div>
+      {/* Reply Context */}
+      <AnimatePresence>
+        {replyingTo && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: 10, height: 0 }}
+            className="mb-2 mx-2 p-3 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] border-l-4 border-blue-500 flex items-center justify-between shadow-sm"
+          >
+            <div className="flex-1 min-w-0 pr-4">
+              <p className="text-xs font-bold text-blue-500 mb-0.5" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                Replying to {replyingTo.senderId === 'me' ? 'Yourself' : 'User'}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 truncate" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                {replyingTo.text || (replyingTo.attachments?.length ? 'Attachment' : 'Voice Message')}
+              </p>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="p-1.5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors text-gray-500"
+            >
+              <X size={16} />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex items-end gap-2">
-        {isRecording ? (
-             <div className="flex-1 flex items-center justify-between bg-gradient-to-r from-red-50 to-white dark:from-red-900/20 dark:to-dark-surface rounded-full px-1 py-1 border border-red-100 dark:border-red-800/30 shadow-inner">
-                 <div className="flex items-center gap-3 px-4 py-2">
-                     <div className="relative">
-                         <span className="w-3 h-3 bg-red-500 rounded-full animate-ping absolute top-0 left-0 opacity-75"></span>
-                         <span className="w-3 h-3 bg-red-500 rounded-full relative block"></span>
-                     </div>
-                     <span className="text-red-600 dark:text-red-400 font-mono font-medium">{formatTime(recordingTime)}</span>
-                 </div>
-                 <div className="flex gap-1 pr-1">
-                     <button onClick={cancelRecording} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all"><Trash2 size={20} /></button>
-                     <button onClick={stopRecording} className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-md transition-all active:scale-95"><Send size={18} className="ml-0.5" /></button>
-                 </div>
-             </div>
-        ) : (
+      <div className={`flex items-end gap-2 relative ${isVanishMode ? 'bg-gray-900/50' : ''} rounded-3xl`}>
+
+        <div className={`flex-1 flex items-center gap-2 p-1.5 rounded-[26px] border transition-all ${theme === 'light' ? 'bg-gray-100 border-transparent focus-within:bg-white focus-within:border-gray-300' : 'bg-[#1a1a1a] border-transparent focus-within:border-gray-700'}`}>
+
+          <button
+            className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImageIcon size={22} strokeWidth={1.5} />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*,video/*,.pdf,.doc,.docx,.zip"
+            multiple
+            onChange={handleFileChange}
+          />
+
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Message..."
+            className="flex-1 bg-transparent border-none outline-none text-[15px] resize-none max-h-32 py-2.5 px-1 min-h-[44px] text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+            rows={1}
+          />
+
+          {!text && (
             <>
-                <div className="flex gap-1 pb-2 text-primary-500">
-                    <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                    >
-                        <ImageIcon size={22} />
-                    </button>
-                    <input 
-                        type="file" 
-                        multiple 
-                        className="hidden" 
-                        ref={fileInputRef} 
-                        onChange={handleFileChange}
-                    />
-                    {/* Emoji Trigger */}
-                    <div className="relative">
-                        <button 
-                            onClick={() => setShowEmoji(!showEmoji)}
-                            className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors ${showEmoji ? 'bg-gray-100 dark:bg-gray-700 text-primary-600' : ''}`}
-                        >
-                            <Smile size={22} />
-                        </button>
-                        
-                        <AnimatePresence>
-                            {showEmoji && (
-                                <motion.div 
-                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                    transition={{ duration: 0.2, ease: "easeOut" }}
-                                    className="absolute bottom-12 left-0 z-50 shadow-2xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 origin-bottom-left"
-                                >
-                                    <EmojiPicker 
-                                        theme={theme === 'dark' ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-                                        emojiStyle={EmojiStyle.APPLE}
-                                        onEmojiClick={(emoji) => setText(prev => prev + emoji.emoji)}
-                                        width={300}
-                                        height={400}
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                    
-                    <button 
-                        onClick={startRecording}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                    >
-                        <Mic size={22} />
-                    </button>
-                </div>
-
-                <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-3xl px-5 py-3 focus-within:ring-2 focus-within:ring-primary-500/50 transition-all border border-transparent dark:border-gray-700">
-                    <textarea
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Message..."
-                        rows={1}
-                        className="w-full bg-transparent border-none outline-none resize-none max-h-32 py-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-                        style={{ minHeight: '24px' }}
-                    />
-                </div>
-
-                <button 
-                    onClick={handleSend}
-                    disabled={!text.trim() && attachments.length === 0 && !audioBlob}
-                    className="p-3 bg-primary-500 text-white rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-primary-500/30"
-                >
-                    <Send size={20} className={(text.trim() || attachments.length > 0 || audioBlob) ? 'ml-0.5' : ''} />
-                </button>
+              <button
+                className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+                onClick={() => { setShowGifPicker(!showGifPicker); setShowEmoji(false); }}
+              >
+                <Clapperboard size={22} strokeWidth={1.5} />
+              </button>
+              <button
+                className="p-2 text-gray-500 hover:text-purple-500 dark:text-gray-400 dark:hover:text-purple-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+                onClick={() => setShowPollCreator(true)}
+                title="Quick Poll"
+              >
+                <BarChart3 size={22} strokeWidth={1.5} />
+              </button>
+              <button
+                className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+                onClick={() => { setShowEmoji(!showEmoji); setShowGifPicker(false); }}
+              >
+                <Smile size={22} strokeWidth={1.5} />
+              </button>
             </>
+          )}
+
+          {text && (
+            <>
+              <button
+                className="p-2 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+                onClick={() => setShowScheduler(!showScheduler)}
+                title="Schedule Message"
+              >
+                <Clock size={20} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={!text.trim() && attachments.length === 0 && !audioBlob}
+                className="p-2 text-blue-500 font-semibold text-[15px] hover:text-blue-600 dark:hover:text-blue-400 transition-colors mr-1"
+                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+              >
+                Send
+              </button>
+            </>
+          )}
+
+        </div>
+
+        {!text && (
+          <div className="flex items-center gap-1 pb-1">
+            {isRecording ? (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center gap-2 bg-red-500 text-white pl-3 pr-1 py-1 rounded-full h-[44px]"
+              >
+                <span className="text-sm font-mono min-w-[40px]">{formatTime(recordingTime)}</span>
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1"></div>
+                <button onClick={cancelRecording} className="p-2 hover:bg-red-600 rounded-full"><X size={18} /></button>
+                <button onClick={stopRecording} className="p-2 hover:bg-red-600 rounded-full"><Check size={18} /></button>
+              </motion.div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsHdMic(!isHdMic)}
+                  title={isHdMic ? "HD Studio Mic On" : "Standard Mic"}
+                  className={`p-2.5 rounded-full transition-all flex-shrink-0 mr-1 ${isHdMic
+                    ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                    }`}
+                >
+                  <Sparkles size={20} strokeWidth={1.5} />
+                </button>
+                <button
+                  onClick={() => setRecordSystemAudio(!recordSystemAudio)}
+                  title={recordSystemAudio ? "Screen + Mic Audio" : "Mic Audio Only"}
+                  className={`p-2.5 rounded-full transition-all flex-shrink-0 mr-1 ${recordSystemAudio
+                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                    }`}
+                >
+                  <Monitor size={20} strokeWidth={1.5} />
+                </button>
+                <button
+                  onMouseDown={recordSystemAudio ? undefined : startRecording}
+                  onMouseUp={recordSystemAudio ? undefined : stopRecording}
+                  onTouchStart={recordSystemAudio ? undefined : startRecording}
+                  onTouchEnd={recordSystemAudio ? undefined : stopRecording}
+                  onClick={recordSystemAudio ? startRecording : undefined}
+                  className="p-3 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all active:scale-90"
+                >
+                  <Mic size={24} strokeWidth={1.5} />
+                </button>
+              </>
+            )}
+          </div>
         )}
       </div>
+
+      {/* Emoji Picker Popup */}
+      <AnimatePresence>
+        {showEmoji && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute bottom-full left-0 right-0 mb-2 z-50 flex justify-center"
+          >
+            <div className="shadow-2xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              <EmojiPicker
+                onEmojiClick={(emojiData) => {
+                  setText(prev => prev + emojiData.emoji);
+                }}
+                theme={theme === 'dark' ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+                emojiStyle={EmojiStyle.APPLE}
+                width={320}
+                height={380}
+                searchPlaceholder="Search emoji..."
+                previewConfig={{ showPreview: false }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GIF Picker Popup */}
+      <AnimatePresence>
+        {showGifPicker && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute bottom-full left-0 right-0 mb-2 z-50 flex justify-center"
+          >
+            <div className={`shadow-2xl rounded-2xl overflow-hidden border w-[340px] ${theme === 'dark' ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className="p-3">
+                <input
+                  type="text"
+                  value={gifSearch}
+                  onChange={(e) => handleGifSearchChange(e.target.value)}
+                  placeholder="Search GIFs..."
+                  className={`w-full px-3 py-2 rounded-xl text-sm outline-none ${theme === 'dark' ? 'bg-gray-800 text-white placeholder-gray-500' : 'bg-gray-100 text-black placeholder-gray-400'}`}
+                  autoFocus
+                />
+              </div>
+              <div className="h-[280px] overflow-y-auto px-2 pb-2">
+                {isLoadingGifs ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {gifs.map((gif: any) => {
+                      const url = gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url;
+                      if (!url) return null;
+                      return (
+                        <button
+                          key={gif.id}
+                          onClick={() => sendGif(url)}
+                          className="rounded-lg overflow-hidden hover:opacity-80 transition-opacity"
+                        >
+                          <img
+                            src={gif.media_formats?.tinygif?.url || url}
+                            alt={gif.content_description || 'GIF'}
+                            className="w-full h-[100px] object-cover"
+                            loading="lazy"
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="px-3 py-1.5 text-center">
+                <span className={`text-[10px] ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Powered by Tenor</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Attachment Previews */}
+      <AnimatePresence>
+        {attachments.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex items-center gap-2 px-3 py-2 overflow-x-auto"
+          >
+            {attachments.map((file, index) => (
+              <div key={index} className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                {file.type.startsWith('image/') ? (
+                  <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-500 dark:text-gray-400 p-1 text-center break-all">
+                    {file.name}
+                  </div>
+                )}
+                <button
+                  onClick={() => removeAttachment(index)}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs shadow-md"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+            {/* View Once Toggle */}
+            <button
+              onClick={() => setIsViewOnce(!isViewOnce)}
+              title={isViewOnce ? 'View Once ON' : 'View Once OFF'}
+              className={`flex-shrink-0 p-2 rounded-full transition-all ${isViewOnce
+                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                }`}
+            >
+              <Flame size={18} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Poll Creator Modal */}
+      <AnimatePresence>
+        {showPollCreator && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowPollCreator(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl border ${theme === 'dark' ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-200'}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>📊 Quick Poll</h3>
+                <button onClick={() => setShowPollCreator(false)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+
+              <input
+                type="text"
+                value={pollQuestion}
+                onChange={(e) => setPollQuestion(e.target.value)}
+                placeholder="Ask a question..."
+                className={`w-full px-4 py-3 rounded-xl text-sm outline-none mb-3 font-semibold ${theme === 'dark' ? 'bg-gray-800 text-white placeholder-gray-500' : 'bg-gray-100 text-black placeholder-gray-400'}`}
+                autoFocus
+              />
+
+              <div className="space-y-2 mb-3">
+                {pollOptions.map((opt, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold flex-shrink-0 ${theme === 'dark' ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}>
+                      {index + 1}
+                    </div>
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => updatePollOption(index, e.target.value)}
+                      placeholder={`Option ${index + 1}`}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm outline-none ${theme === 'dark' ? 'bg-gray-800 text-white placeholder-gray-500' : 'bg-gray-100 text-black placeholder-gray-400'}`}
+                    />
+                    {pollOptions.length > 2 && (
+                      <button onClick={() => removePollOption(index)} className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {pollOptions.length < 6 && (
+                <button
+                  onClick={addPollOption}
+                  className="flex items-center gap-2 text-sm text-blue-500 font-medium mb-4 hover:text-blue-600"
+                >
+                  <Plus size={16} /> Add option
+                </button>
+              )}
+
+              <button
+                onClick={sendPoll}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-95"
+              >
+                Send Poll 📊
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Schedule Message Popup */}
+      <AnimatePresence>
+        {showScheduler && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute bottom-full left-0 right-0 mb-2 z-50 flex justify-center"
+          >
+            <div className={`shadow-2xl rounded-2xl overflow-hidden border p-4 w-[300px] ${theme === 'dark' ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <Clock size={18} className="text-orange-500" />
+                <span className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Schedule Message</span>
+              </div>
+              <input
+                type="datetime-local"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                className={`w-full px-3 py-2 rounded-xl text-sm outline-none mb-3 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-black'}`}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowScheduler(false)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={sendScheduled}
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold shadow-lg"
+                >
+                  Schedule ⏰
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

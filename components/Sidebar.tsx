@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { User, Story } from '../types';
 import toast from 'react-hot-toast';
+import { supabase } from '../services/supabaseService';
 
 // 15 Custom Background Colors
 const BG_COLORS = [
@@ -106,8 +107,8 @@ export const Sidebar: React.FC = () => {
                 )}
              </div>
              <div className="flex flex-col">
-                 <h3 className="font-semibold text-lg dark:text-white leading-tight tracking-tight">{user?.username}</h3>
-                 <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">My Account</span>
+                 <h3 className="font-semibold text-lg dark:text-white leading-tight tracking-tight" style={{ fontFamily: 'Inter, Poppins, -apple-system, BlinkMacSystemFont, sans-serif', fontWeight: 600 }}>{user?.username}</h3>
+                 <span className="text-[11px] text-gray-500 dark:text-gray-400 font-medium" style={{ fontFamily: 'Inter, Poppins, sans-serif', fontWeight: 500 }}>My Account</span>
              </div>
           </div>
           <div className="flex gap-1">
@@ -120,38 +121,59 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
         
-        {/* Minimal Search */}
+        {/* Modern Search - Instagram Style */}
         <div className="relative mb-6 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1a1a2e] dark:group-focus-within:text-[#0f3460] transition-colors" size={18} />
           <input 
             type="text" 
             placeholder="Search..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-dark-card/50 border border-transparent focus:border-blue-500/20 rounded-xl text-sm outline-none dark:text-gray-200 transition-all focus:bg-white dark:focus:bg-dark-card/80"
+            className={`w-full pl-10 pr-4 py-3 backdrop-blur-md border border-gray-200/50 dark:border-white/10 focus:border-[#1a1a2e] dark:focus:border-[#0f3460] rounded-xl text-sm outline-none dark:text-gray-200 transition-all shadow-sm focus:shadow-md ${theme === 'light' ? 'bg-gray-50 focus:bg-white' : 'bg-white/80 dark:bg-[#0f1419]/80 focus:bg-white dark:focus:bg-[#0f1419]'}`}
           />
         </div>
 
-        {/* Minimal Tabs */}
-        <div className="flex p-1 gap-1 mb-2">
-            {['chats', 'people', 'stories'].map((tab) => (
-                <button 
-                    key={tab}
-                    onClick={() => setActiveTab(tab as any)}
-                    className={`flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-all ${
-                        activeTab === tab 
-                        ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-white/10' 
-                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-                    }`}
-                >
-                    {tab}
-                </button>
-            ))}
+        {/* Modern Tabs - Instagram Style */}
+        <div className={`flex p-1 gap-1 mb-2 rounded-xl backdrop-blur-sm border border-gray-200/50 dark:border-white/10 ${theme === 'light' ? 'bg-gray-50' : 'bg-white/50 dark:bg-[#0f1419]/50'}`}>
+            {['chats', 'people', 'stories'].map((tab) => {
+                const totalUnread = tab === 'chats' ? conversations.reduce((sum, conv) => sum + conv.unreadCount, 0) : 0;
+                return (
+                    <button 
+                        key={tab}
+                        onClick={() => setActiveTab(tab as any)}
+                        className={`flex-1 py-2.5 text-[12px] font-semibold uppercase tracking-widest rounded-lg transition-all relative ${
+                            activeTab === tab 
+                            ? 'text-white bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] shadow-lg' 
+                            : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                        }`}
+                        style={{ fontFamily: 'Inter, Poppins, -apple-system, sans-serif', fontWeight: 600, letterSpacing: '0.05em' }}
+                    >
+                        {tab}
+                        {tab === 'chats' && totalUnread > 0 && (
+                            <motion.span
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-[#0f1419] z-20"
+                                style={{ fontFamily: 'Inter, -apple-system, sans-serif', fontWeight: 700 }}
+                            >
+                                {totalUnread > 99 ? '99+' : totalUnread}
+                            </motion.span>
+                        )}
+                        {activeTab === tab && (
+                            <motion.div
+                                layoutId="activeTab"
+                                className="absolute inset-0 bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] rounded-lg -z-10"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                    </button>
+                );
+            })}
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2 relative z-10">
+      <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0 relative z-10">
         <AnimatePresence mode="wait">
             {searchTerm.trim() ? (
                 // Search Results
@@ -204,8 +226,8 @@ export const Sidebar: React.FC = () => {
                                 onClick={() => selectConversation(conv.id)}
                                 className={`p-3 rounded-2xl cursor-pointer transition-all border ${
                                     isActive 
-                                    ? 'bg-blue-700/80 backdrop-blur-md text-white shadow-lg shadow-blue-900/40 border-blue-500/50 scale-[1.02]' 
-                                    : 'bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 border-transparent'
+                                    ? 'bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] backdrop-blur-md text-white shadow-lg shadow-[#1a1a2e]/40 border-[#1a1a2e]/50 scale-[1.02]' 
+                                    : 'bg-white/50 dark:bg-[#0f1419]/50 hover:bg-white dark:hover:bg-[#0f1419] border-gray-200/50 dark:border-white/10 backdrop-blur-sm'
                                 } flex items-center gap-3 group`}
                             >
                                 <div className="relative">
@@ -214,14 +236,36 @@ export const Sidebar: React.FC = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline">
-                                        <h4 className={`font-semibold text-sm truncate ${isActive ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{participant.username}</h4>
-                                        {conv.lastMessage && <span className={`text-[10px] ${isActive ? 'text-white/60' : 'text-gray-400'}`}>{formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: false }).replace('about ', '')}</span>}
+                                        <h4 
+                                            className={`font-semibold text-sm truncate ${isActive ? 'text-white' : 'text-gray-900 dark:text-white'}`}
+                                            style={{ fontFamily: 'Inter, Poppins, -apple-system, sans-serif', fontWeight: 600 }}
+                                        >
+                                            {participant.username}
+                                        </h4>
+                                        {conv.lastMessage && (
+                                            <span 
+                                                className={`text-[10px] font-medium ${isActive ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'}`}
+                                                style={{ fontFamily: 'Inter, -apple-system, sans-serif', fontWeight: 500 }}
+                                            >
+                                                {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: false }).replace('about ', '')}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex justify-between items-center mt-0.5">
-                                        <p className={`text-xs truncate ${isActive ? 'text-white/80' : conv.unreadCount > 0 ? 'font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-500'}`}>
-                                            {conv.isTyping ? <span className="italic animate-pulse">Typing...</span> : (conv.lastMessage?.text || 'Start chatting')}
+                                        <p 
+                                            className={`text-xs truncate ${isActive ? 'text-white/90' : conv.unreadCount > 0 ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}
+                                            style={{ fontFamily: 'Inter, Poppins, sans-serif', fontWeight: conv.unreadCount > 0 ? 500 : 400 }}
+                                        >
+                                            {conv.isTyping ? <span className="italic animate-pulse text-[#1a1a2e] dark:text-[#0f3460]">Typing...</span> : (conv.lastMessage?.text || 'Start chatting')}
                                         </p>
-                                        {conv.unreadCount > 0 && <span className="min-w-[1.25rem] h-5 px-1.5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md">{conv.unreadCount}</span>}
+                                        {conv.unreadCount > 0 && (
+                                            <span 
+                                                className="min-w-[1.25rem] h-5 px-1.5 bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg"
+                                                style={{ fontFamily: 'Inter, -apple-system, sans-serif', fontWeight: 700 }}
+                                            >
+                                                {conv.unreadCount}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>
@@ -288,7 +332,7 @@ export const Sidebar: React.FC = () => {
                     {stories.map(story => {
                         const isSeen = story.isViewed;
                         return (
-                            <div key={story.id} onClick={() => openStory(story)} className={`aspect-[4/5] rounded-2xl relative overflow-hidden cursor-pointer group p-[2px] shadow-sm ${!isSeen ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600' : 'bg-gray-300 dark:bg-gray-700'}`}>
+                            <div key={story.id} onClick={() => openStory(story)} className={`aspect-[4/5] rounded-2xl relative overflow-hidden cursor-pointer group p-[2px] shadow-lg transition-all hover:scale-105 ${!isSeen ? 'bg-gradient-to-tr from-[#1a1a2e] via-[#0f3460] to-[#16213e]' : 'bg-gray-200/50 dark:bg-gray-700/50'}`}>
                                 <div className="w-full h-full rounded-xl overflow-hidden relative bg-black/90">
                                     {story.mediaType === 'image' && story.mediaUrl ? (
                                         <img src={story.mediaUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
@@ -545,12 +589,50 @@ const StoryViewer: React.FC<{
     const [progress, setProgress] = useState(0);
     const [replyText, setReplyText] = useState('');
     const [isPaused, setIsPaused] = useState(false);
+    const [showViewers, setShowViewers] = useState(false);
+    const [viewerUsers, setViewerUsers] = useState<User[]>([]);
+    const [isLoadingViewers, setIsLoadingViewers] = useState(false);
     
     // Audio Player State for Story
     const [isAudioPlaying, setIsAudioPlaying] = useState(true);
     const storyAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const isOwner = story.userId === currentUserId;
+
+    useEffect(() => {
+        const loadViewers = async () => {
+            if (!isOwner) return;
+            if (!showViewers) return;
+            if (!story.viewers?.length) {
+                setViewerUsers([]);
+                return;
+            }
+            setIsLoadingViewers(true);
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .in('id', story.viewers);
+                if (error) throw error;
+                const mapped: User[] = (data || []).map((u: any) => ({
+                    id: u.id,
+                    username: u.username,
+                    avatar: u.avatar_url,
+                    isOnline: !!u.is_online,
+                    lastActive: u.last_active
+                }));
+                // Keep original viewer order
+                const order = new Map(story.viewers.map((id, idx) => [id, idx]));
+                mapped.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+                setViewerUsers(mapped);
+            } catch {
+                toast.error('Failed to load viewers');
+            } finally {
+                setIsLoadingViewers(false);
+            }
+        };
+        loadViewers();
+    }, [isOwner, showViewers, story.viewers]);
 
     useEffect(() => {
         if (isPaused) return;
@@ -575,6 +657,7 @@ const StoryViewer: React.FC<{
         if (!replyText.trim()) return;
         onReply(story, replyText);
         setReplyText('');
+        onClose();
     };
 
     const handleQuickReaction = (emoji: string) => {
@@ -667,17 +750,102 @@ const StoryViewer: React.FC<{
                   
                   {/* Footer (Viewers for Owner, Reply for Others) */}
                   {isOwner ? (
-                      <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
-                          <div className="flex items-center gap-2 mb-2">
-                              <Users size={16} />
-                              <span className="text-sm font-medium">{story.viewers.length} Viewers</span>
-                          </div>
-                      </div>
+                      <>
+                        <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/85 to-transparent text-white">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setShowViewers(true); setIsPaused(true); }}
+                                className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/10 border border-white/15 backdrop-blur-md hover:bg-white/15 transition-colors"
+                            >
+                                <Users size={16} />
+                                <span className="text-sm font-semibold" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                    {story.viewers.length} Views
+                                </span>
+                                <span className="text-xs text-white/70" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                    Tap to view
+                                </span>
+                            </button>
+                        </div>
+
+                        <AnimatePresence>
+                          {showViewers && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="absolute inset-0 z-30 bg-black/70 backdrop-blur-sm flex items-end"
+                              onClick={() => { setShowViewers(false); setIsPaused(false); }}
+                            >
+                              <motion.div
+                                initial={{ y: 40, opacity: 0, scale: 0.98 }}
+                                animate={{ y: 0, opacity: 1, scale: 1 }}
+                                exit={{ y: 40, opacity: 0, scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                                className="w-full md:w-[420px] md:mx-auto rounded-t-3xl md:rounded-3xl bg-[#0f1419]/95 border border-white/10 shadow-2xl overflow-hidden"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                                  <div className="flex items-center gap-2">
+                                    <Users size={18} className="text-white/80" />
+                                    <span className="text-white font-bold" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                      Views
+                                    </span>
+                                    <span className="text-white/60 text-sm" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                      {story.viewers.length}
+                                    </span>
+                                  </div>
+                                  <button onClick={() => { setShowViewers(false); setIsPaused(false); }} className="text-white/80 hover:text-white transition-colors">
+                                    <X size={22} />
+                                  </button>
+                                </div>
+
+                                <div className="max-h-[55vh] overflow-y-auto px-3 py-3">
+                                  {isLoadingViewers ? (
+                                    <div className="px-3 py-8 text-center text-white/70 text-sm" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                      Loading...
+                                    </div>
+                                  ) : viewerUsers.length === 0 ? (
+                                    <div className="px-3 py-8 text-center text-white/70 text-sm" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                      No views yet
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-1">
+                                      {viewerUsers.map(v => (
+                                        <div key={v.id} className="flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-white/5 transition-colors">
+                                          <img src={v.avatar} alt={v.username} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                                          <div className="flex flex-col min-w-0">
+                                            <span className="text-white font-semibold text-sm truncate" style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                              {v.username}
+                                            </span>
+                                            <span className={`text-[11px] ${v.isOnline ? 'text-emerald-400' : 'text-white/50'}`} style={{ fontFamily: 'Inter, -apple-system, sans-serif' }}>
+                                              {v.isOnline ? 'Active now' : ' '}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
                   ) : (
                       <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-4" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
                           <div className="flex justify-between px-2">
                               {['😂', '😮', '😍', '😢', '🔥', '👏'].map(emoji => (
-                                  <button key={emoji} onClick={() => handleQuickReaction(emoji)} className="text-3xl hover:scale-125 transition-transform">{emoji}</button>
+                                  <button 
+                                      key={emoji} 
+                                      onClick={() => handleQuickReaction(emoji)} 
+                                      className="text-3xl hover:scale-125 transition-transform"
+                                      style={{ 
+                                          fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji, sans-serif',
+                                          lineHeight: '1',
+                                          display: 'inline-block'
+                                      }}
+                                  >
+                                      {emoji}
+                                  </button>
                               ))}
                           </div>
                           <div className="flex items-center gap-2">

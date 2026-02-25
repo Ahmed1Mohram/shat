@@ -13,12 +13,14 @@ export const CallModal: React.FC = () => {
     useEffect(() => {
         if (localVideoRef.current && localStream) {
             localVideoRef.current.srcObject = localStream;
+            localVideoRef.current.play().catch(err => console.error('Error playing local video:', err));
         }
     }, [localStream]);
 
     useEffect(() => {
         if (remoteVideoRef.current && remoteStream) {
             remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch(err => console.error('Error playing remote video:', err));
         }
     }, [remoteStream]);
 
@@ -42,12 +44,18 @@ export const CallModal: React.FC = () => {
                 exit={{ opacity: 0, y: 100 }}
                 className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
             >
-                <div className="w-full max-w-md bg-gradient-to-b from-gray-900 to-black rounded-3xl shadow-2xl border border-white/10 overflow-hidden flex flex-col relative h-[80vh] md:h-[600px]">
+                <div className="w-full max-w-md bg-gradient-to-br from-[#0a0f1a] via-[#1a1a2e] to-[#16213e] rounded-3xl shadow-2xl border-2 border-white/20 overflow-hidden flex flex-col relative h-[80vh] md:h-[600px] backdrop-blur-xl">
                     
                     {/* Background / Remote Video */}
-                    <div className="absolute inset-0 bg-gray-800">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#0a0f1a] via-[#1a1a2e] to-[#16213e]">
                          {activeCall.isVideo && remoteStream ? (
-                             <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                             <video 
+                                 ref={remoteVideoRef} 
+                                 autoPlay 
+                                 playsInline 
+                                 className="w-full h-full object-cover"
+                                 onError={(e) => console.error('Video error:', e)}
+                             />
                          ) : (
                              // Audio Call Background Animation
                              <div className="w-full h-full flex items-center justify-center relative overflow-hidden">
@@ -55,15 +63,33 @@ export const CallModal: React.FC = () => {
                                  <div className="w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
                                  
                                  {/* Audio Element for Remote Audio */}
-                                 {remoteStream && <audio ref={el => { if(el) el.srcObject = remoteStream }} autoPlay />}
+                                 {remoteStream && (
+                                     <audio 
+                                         ref={el => { 
+                                             if(el && remoteStream) {
+                                                 el.srcObject = remoteStream;
+                                                 el.play().catch(err => console.error('Error playing remote audio:', err));
+                                             }
+                                         }} 
+                                         autoPlay 
+                                         playsInline
+                                     />
+                                 )}
                              </div>
                          )}
                     </div>
 
                     {/* Local Video Picture-in-Picture */}
                     {activeCall.isVideo && localStream && (
-                        <div className="absolute top-4 right-4 w-32 h-48 bg-black rounded-xl overflow-hidden shadow-xl border border-white/20 z-10">
-                            <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                        <div className="absolute top-4 right-4 w-32 h-48 bg-black/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-xl border-2 border-white/30 z-10">
+                            <video 
+                                ref={localVideoRef} 
+                                autoPlay 
+                                playsInline 
+                                muted 
+                                className="w-full h-full object-cover"
+                                onError={(e) => console.error('Local video error:', e)}
+                            />
                         </div>
                     )}
 
