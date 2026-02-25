@@ -552,317 +552,317 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                   />
                 </div>
               ) : (
-                <div
-                  className={`px-4 py-2.5 rounded-3xl text-[15px] leading-[1.4] break-words whitespace-pre-wrap transition-all emoji-text ${isOwn
-                    ? 'bg-[#efefef] dark:bg-[#262626] text-black dark:text-white rounded-br-[4px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]'
-                    : 'bg-white dark:bg-[#262626] text-black dark:text-white rounded-bl-[4px] border border-gray-200/60 dark:border-gray-700/60 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
-                    }`}
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                    fontWeight: 400,
-                    letterSpacing: '-0.01em'
-                  }}
-                >
-                  {isEditing && isOwn ? (
-                    <div className="flex items-center gap-2 w-full">
-                      <input
-                        type="text"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            editMessage(message.id, editText);
-                            setIsEditing(false);
-                          }
-                          if (e.key === 'Escape') {
-                            setIsEditing(false);
-                            setEditText(message.text);
-                          }
-                        }}
-                        className="flex-1 bg-transparent border-none outline-none text-inherit"
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => { editMessage(message.id, editText); setIsEditing(false); }}
-                        className="text-blue-500 text-xs font-semibold"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => { setIsEditing(false); setEditText(message.text); }}
-                        className="text-gray-500 text-xs"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <span style={{ lineHeight: '1.6', wordBreak: 'break-word' }}>
-                        {message.isDeleted ? (
-                          <span className="italic text-gray-400 dark:text-gray-500">
-                            {message.deletedFor === 'everyone' ? 'This message was deleted' : 'You deleted this message'}
-                          </span>
-                        ) : (
-                          <span dangerouslySetInnerHTML={{
-                            __html: twemoji.parse(message.text, {
-                              attributes: () => ({ style: 'display: inline-block; vertical-align: -0.2em; height: 1.25em; width: 1.25em; margin: 0 .05em 0 .1em;' }),
-                              callback: function (icon, options, variant) {
-                                return `https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/${icon}.png`;
-                              }
-                            })
-                          }} />
-                        )}
-                      </span>
-                      {message.isEdited && (
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1 italic">
-                          (edited)
+                <>
+                  <div
+                    className={`px-4 py-2.5 rounded-3xl text-[15px] leading-[1.4] break-words whitespace-pre-wrap transition-all emoji-text ${isOwn
+                      ? 'bg-[#efefef] dark:bg-[#262626] text-black dark:text-white rounded-br-[4px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]'
+                      : 'bg-white dark:bg-[#262626] text-black dark:text-white rounded-bl-[4px] border border-gray-200/60 dark:border-gray-700/60 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
+                      }`}
+                    style={{
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                      fontWeight: 400,
+                      letterSpacing: '-0.01em'
+                    }}
+                  >
+                    {isEditing && isOwn ? (
+                      <div className="flex items-center gap-2 w-full">
+                        <input
+                          type="text"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              editMessage(message.id, editText);
+                              setIsEditing(false);
+                            }
+                            if (e.key === 'Escape') {
+                              setIsEditing(false);
+                              setEditText(message.text);
+                            }
+                          }}
+                          className="flex-1 bg-transparent border-none outline-none text-inherit"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => { editMessage(message.id, editText); setIsEditing(false); }}
+                          className="text-blue-500 text-xs font-semibold"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => { setIsEditing(false); setEditText(message.text); }}
+                          className="text-gray-500 text-xs"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span style={{ lineHeight: '1.6', wordBreak: 'break-word' }}>
+                          {message.isDeleted ? (
+                            <span className="italic text-gray-400 dark:text-gray-500">
+                              {message.deletedFor === 'everyone' ? 'This message was deleted' : 'You deleted this message'}
+                            </span>
+                          ) : (
+                            <span dangerouslySetInnerHTML={{
+                              __html: twemoji.parse(message.text, {
+                                attributes: () => ({ style: 'display: inline-block; vertical-align: -0.2em; height: 1.25em; width: 1.25em; margin: 0 .05em 0 .1em;' }),
+                                callback: function (icon, options, variant) {
+                                  return `https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/${icon}.png`;
+                                }
+                              })
+                            }} />
+                          )}
                         </span>
-                      )}
-                      {message.isPinned && (
-                        <Pin size={12} className="text-blue-500 ml-1 inline" />
-                      )}
-                    </>
+                        {message.isEdited && (
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1 italic">
+                            (edited)
+                          </span>
+                        )}
+                        {message.isPinned && (
+                          <Pin size={12} className="text-blue-500 ml-1 inline" />
+                        )}
+                      </>
+                    )}
+                  </div>
+                  {/* Translate Button */}
+                  {message.text && !message.isDeleted && !isOnlyEmojis && (
+                    <div className="mt-1">
+                      <button
+                        onClick={async () => {
+                          if (translatedText) { setTranslatedText(null); return; }
+                          setIsTranslating(true);
+                          try {
+                            const isArabic = /[\u0600-\u06FF]/.test(message.text);
+                            const langPair = isArabic ? 'ar|en' : 'en|ar';
+                            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(message.text)}&langpair=${langPair}`);
+                            const data = await res.json();
+                            setTranslatedText(data.responseData?.translatedText || 'Translation failed');
+                          } catch { setTranslatedText('Translation failed'); }
+                          setIsTranslating(false);
+                        }}
+                        className={`flex items-center gap-1 text-[10px] font-medium transition-all ${translatedText ? 'text-blue-500' : 'text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400'}`}
+                      >
+                        <Globe size={11} />
+                        {isTranslating ? 'Translating...' : translatedText ? 'Hide translation' : 'Translate'}
+                      </button>
+                      <AnimatePresence>
+                        {translatedText && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className={`text-xs mt-1 px-2 py-1.5 rounded-lg ${isOwn ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'}`}
+                            style={{ fontFamily: '-apple-system, sans-serif' }}
+                          >
+                            🌍 {translatedText}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   )}
                 </div>
-                {/* Translate Button */}
-            {message.text && !message.isDeleted && !isOnlyEmojis && (
-              <div className="mt-1">
+
+            <div className={`absolute ${isOwn ? 'left-0 -translate-x-full' : 'right-0 translate-x-full'} top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 mx-2 z-20 h-full`}>
+              <div className="relative">
                 <button
-                  onClick={async () => {
-                    if (translatedText) { setTranslatedText(null); return; }
-                    setIsTranslating(true);
-                    try {
-                      const isArabic = /[\u0600-\u06FF]/.test(message.text);
-                      const langPair = isArabic ? 'ar|en' : 'en|ar';
-                      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(message.text)}&langpair=${langPair}`);
-                      const data = await res.json();
-                      setTranslatedText(data.responseData?.translatedText || 'Translation failed');
-                    } catch { setTranslatedText('Translation failed'); }
-                    setIsTranslating(false);
-                  }}
-                  className={`flex items-center gap-1 text-[10px] font-medium transition-all ${translatedText ? 'text-blue-500' : 'text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400'}`}
+                  onClick={() => setShowReactions(!showReactions)}
+                  className="p-2 bg-white dark:bg-[#1a1a1a] rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-transform"
                 >
-                  <Globe size={11} />
-                  {isTranslating ? 'Translating...' : translatedText ? 'Hide translation' : 'Translate'}
+                  {myReaction ? (
+                    <span className={REACTION_COLORS[myReaction.type]}>
+                      {REACTION_ICONS[myReaction.type]}
+                    </span>
+                  ) : (
+                    <ThumbsUp size={16} className="text-gray-600 dark:text-gray-400" />
+                  )}
                 </button>
+
                 <AnimatePresence>
-                  {translatedText && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className={`text-xs mt-1 px-2 py-1.5 rounded-lg ${isOwn ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'}`}
-                      style={{ fontFamily: '-apple-system, sans-serif' }}
+                  {showReactions && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex gap-1 bg-white dark:bg-[#1a1a1a] rounded-full px-2 py-1.5 shadow-2xl border border-gray-200 dark:border-gray-700 z-50 min-w-max"
                     >
-                      🌍 {translatedText}
-                    </motion.p>
+                      {Object.entries(REACTION_ICONS).map(([type, icon]) => (
+                        <button
+                          key={type}
+                          onClick={() => handleReaction(type as ReactionType)}
+                          className={`p-2 rounded-full hover:scale-125 transition-transform ${REACTION_COLORS[type as ReactionType]}`}
+                        >
+                          {icon}
+                        </button>
+                      ))}
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-            )}
-            )}
-          </div>
 
-          <div className={`absolute ${isOwn ? 'left-0 -translate-x-full' : 'right-0 translate-x-full'} top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 mx-2 z-20 h-full`}>
-            <div className="relative">
-              <button
-                onClick={() => setShowReactions(!showReactions)}
-                className="p-2 bg-white dark:bg-[#1a1a1a] rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-transform"
-              >
-                {myReaction ? (
-                  <span className={REACTION_COLORS[myReaction.type]}>
-                    {REACTION_ICONS[myReaction.type]}
-                  </span>
-                ) : (
-                  <ThumbsUp size={16} className="text-gray-600 dark:text-gray-400" />
-                )}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="p-1.5 bg-white dark:bg-[#0f1419] rounded-full shadow-lg border border-gray-200 dark:border-white/10 hover:scale-110 transition-transform"
+                >
+                  <MoreVertical size={16} className="text-gray-600 dark:text-gray-400" />
+                </button>
 
-              <AnimatePresence>
-                {showReactions && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex gap-1 bg-white dark:bg-[#1a1a1a] rounded-full px-2 py-1.5 shadow-2xl border border-gray-200 dark:border-gray-700 z-50 min-w-max"
-                  >
-                    {Object.entries(REACTION_ICONS).map(([type, icon]) => (
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className={`absolute ${isOwn ? 'right-0' : 'left-0'} top-full mt-2 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[140px] z-50`}
+                    >
                       <button
-                        key={type}
-                        onClick={() => handleReaction(type as ReactionType)}
-                        className={`p-2 rounded-full hover:scale-125 transition-transform ${REACTION_COLORS[type as ReactionType]}`}
+                        onClick={() => { copyMessage(message.id); setShowMenu(false); }}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
                       >
-                        {icon}
+                        <Copy size={18} />
+                        Copy
                       </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <button
+                        onClick={handleReply}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      >
+                        <Reply size={18} />
+                        Reply
+                      </button>
+                      <button
+                        onClick={handleForward}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      >
+                        <Forward size={18} />
+                        Forward
+                      </button>
+                      {isOwn && (
+                        <>
+                          <button
+                            onClick={() => { setIsEditing(true); setEditText(message.text); setShowMenu(false); }}
+                            className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                          >
+                            <Edit2 size={18} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => { deleteMessage(message.id, 'me'); setShowMenu(false); }}
+                            className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 transition-colors"
+                          >
+                            <Trash2 size={18} />
+                            Delete for me
+                          </button>
+                          <button
+                            onClick={() => { deleteMessage(message.id, 'everyone'); setShowMenu(false); }}
+                            className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 transition-colors"
+                          >
+                            <Trash2 size={18} />
+                            Delete for everyone
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => { message.isPinned ? unpinMessage(message.id) : pinMessage(message.id); setShowMenu(false); }}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      >
+                        <Pin size={18} className={message.isPinned ? 'fill-current' : ''} />
+                        {message.isPinned ? 'Unpin' : 'Pin'}
+                      </button>
+                      <button
+                        onClick={() => { setShowMenu(false); toast(message.isBookmarked ? 'Bookmark removed' : 'Message bookmarked ✨'); }}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={message.isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+                        {message.isBookmarked ? 'Unbookmark' : 'Bookmark'}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-1.5 bg-white dark:bg-[#0f1419] rounded-full shadow-lg border border-gray-200 dark:border-white/10 hover:scale-110 transition-transform"
-              >
-                <MoreVertical size={16} className="text-gray-600 dark:text-gray-400" />
-              </button>
-
-              <AnimatePresence>
-                {showMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className={`absolute ${isOwn ? 'right-0' : 'left-0'} top-full mt-2 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[140px] z-50`}
-                  >
-                    <button
-                      onClick={() => { copyMessage(message.id); setShowMenu(false); }}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
-                    >
-                      <Copy size={18} />
-                      Copy
-                    </button>
-                    <button
-                      onClick={handleReply}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
-                    >
-                      <Reply size={18} />
-                      Reply
-                    </button>
-                    <button
-                      onClick={handleForward}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
-                    >
-                      <Forward size={18} />
-                      Forward
-                    </button>
-                    {isOwn && (
-                      <>
-                        <button
-                          onClick={() => { setIsEditing(true); setEditText(message.text); setShowMenu(false); }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
-                        >
-                          <Edit2 size={18} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => { deleteMessage(message.id, 'me'); setShowMenu(false); }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 transition-colors"
-                        >
-                          <Trash2 size={18} />
-                          Delete for me
-                        </button>
-                        <button
-                          onClick={() => { deleteMessage(message.id, 'everyone'); setShowMenu(false); }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 transition-colors"
-                        >
-                          <Trash2 size={18} />
-                          Delete for everyone
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => { message.isPinned ? unpinMessage(message.id) : pinMessage(message.id); setShowMenu(false); }}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
-                    >
-                      <Pin size={18} className={message.isPinned ? 'fill-current' : ''} />
-                      {message.isPinned ? 'Unpin' : 'Pin'}
-                    </button>
-                    <button
-                      onClick={() => { setShowMenu(false); toast(message.isBookmarked ? 'Bookmark removed' : 'Message bookmarked ✨'); }}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={message.isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
-                      {message.isBookmarked ? 'Unbookmark' : 'Bookmark'}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
+
+          {isOwn && (
+            <div className={`flex items-center justify-end mt-1 gap-1.5 ${isOnlyEmojis ? 'opacity-70' : ''}`}>
+              <span className="text-[10.5px] text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>
+                {format(new Date(message.createdAt), 'h:mm a')}
+              </span>
+              {message.status === 'sent' && (
+                <Check size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2.5} />
+              )}
+              {message.status === 'delivered' && (
+                <CheckCheck size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2.5} />
+              )}
+              {message.status === 'seen' && (
+                <div className="flex items-center gap-1.5">
+                  <CheckCheck size={13} className="text-[#0095f6] dark:text-[#0095f6] flex-shrink-0" strokeWidth={2.5} />
+                  {message.seenBy && message.seenBy.length > 0 && (
+                    <div className="flex items-center gap-0.5 -ml-0.5">
+                      <AnimatePresence>
+                        {message.seenBy.slice(0, isGroup ? 3 : 1).map((userId, idx) => {
+                          const seenUser = conversationParticipants.find(p => p.id === userId) || { avatar: senderAvatar };
+                          return (
+                            <motion.img
+                              key={userId}
+                              initial={{ opacity: 0, scale: 0.6, y: -8 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.6 }}
+                              transition={{ delay: idx * 0.08, type: "spring", stiffness: 600, damping: 25 }}
+                              src={seenUser.avatar || senderAvatar}
+                              alt="seen"
+                              className="w-[14px] h-[14px] rounded-full border-[1.5px] border-white dark:border-gray-900 shadow-sm object-cover"
+                              style={{ zIndex: message.seenBy!.length - idx }}
+                            />
+                          );
+                        })}
+                      </AnimatePresence>
+                      {isGroup && message.seenBy.length > 3 && (
+                        <span className="text-[9px] text-gray-500 dark:text-gray-400 ml-0.5 font-medium">
+                          +{message.seenBy.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isOwn && (
+            <div className="flex items-center justify-start mt-1 gap-1.5">
+              {isGroup && (
+                <span className="text-[10.5px] font-semibold text-gray-700 dark:text-gray-300 mb-0.5" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {message.senderId !== user?.id ? conversationParticipants.find(p => p.id === message.senderId)?.username || 'Unknown' : 'You'}
+                </span>
+              )}
+              <span className="text-[10.5px] text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>
+                {format(new Date(message.createdAt), 'h:mm a')}
+              </span>
+            </div>
+          )}
+
+          {message.reactions && message.reactions.length > 0 && (
+            <div className={`mt-1 flex items-center gap-1 flex-wrap ${isOwn ? 'justify-end' : 'justify-start'}`}>
+              {Object.entries(
+                message.reactions.reduce((acc, r) => {
+                  acc[r.type] = (acc[r.type] || 0) + 1;
+                  return acc;
+                }, {} as Record<ReactionType, number>)
+              ).map(([type, count]) => (
+                <div
+                  key={type}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full bg-white dark:bg-[#1a1a1a] border border-gray-200/80 dark:border-gray-700/80 shadow-sm ${REACTION_COLORS[type as ReactionType]}`}
+                >
+                  {REACTION_ICONS[type as ReactionType]}
+                  <span className="font-medium text-[11px]">{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
         </div>
-
-        {isOwn && (
-          <div className={`flex items-center justify-end mt-1 gap-1.5 ${isOnlyEmojis ? 'opacity-70' : ''}`}>
-            <span className="text-[10.5px] text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {format(new Date(message.createdAt), 'h:mm a')}
-            </span>
-            {message.status === 'sent' && (
-              <Check size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2.5} />
-            )}
-            {message.status === 'delivered' && (
-              <CheckCheck size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2.5} />
-            )}
-            {message.status === 'seen' && (
-              <div className="flex items-center gap-1.5">
-                <CheckCheck size={13} className="text-[#0095f6] dark:text-[#0095f6] flex-shrink-0" strokeWidth={2.5} />
-                {message.seenBy && message.seenBy.length > 0 && (
-                  <div className="flex items-center gap-0.5 -ml-0.5">
-                    <AnimatePresence>
-                      {message.seenBy.slice(0, isGroup ? 3 : 1).map((userId, idx) => {
-                        const seenUser = conversationParticipants.find(p => p.id === userId) || { avatar: senderAvatar };
-                        return (
-                          <motion.img
-                            key={userId}
-                            initial={{ opacity: 0, scale: 0.6, y: -8 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.6 }}
-                            transition={{ delay: idx * 0.08, type: "spring", stiffness: 600, damping: 25 }}
-                            src={seenUser.avatar || senderAvatar}
-                            alt="seen"
-                            className="w-[14px] h-[14px] rounded-full border-[1.5px] border-white dark:border-gray-900 shadow-sm object-cover"
-                            style={{ zIndex: message.seenBy!.length - idx }}
-                          />
-                        );
-                      })}
-                    </AnimatePresence>
-                    {isGroup && message.seenBy.length > 3 && (
-                      <span className="text-[9px] text-gray-500 dark:text-gray-400 ml-0.5 font-medium">
-                        +{message.seenBy.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!isOwn && (
-          <div className="flex items-center justify-start mt-1 gap-1.5">
-            {isGroup && (
-              <span className="text-[10.5px] font-semibold text-gray-700 dark:text-gray-300 mb-0.5" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {message.senderId !== user?.id ? conversationParticipants.find(p => p.id === message.senderId)?.username || 'Unknown' : 'You'}
-              </span>
-            )}
-            <span className="text-[10.5px] text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {format(new Date(message.createdAt), 'h:mm a')}
-            </span>
-          </div>
-        )}
-
-        {message.reactions && message.reactions.length > 0 && (
-          <div className={`mt-1 flex items-center gap-1 flex-wrap ${isOwn ? 'justify-end' : 'justify-start'}`}>
-            {Object.entries(
-              message.reactions.reduce((acc, r) => {
-                acc[r.type] = (acc[r.type] || 0) + 1;
-                return acc;
-              }, {} as Record<ReactionType, number>)
-            ).map(([type, count]) => (
-              <div
-                key={type}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full bg-white dark:bg-[#1a1a1a] border border-gray-200/80 dark:border-gray-700/80 shadow-sm ${REACTION_COLORS[type as ReactionType]}`}
-              >
-                {REACTION_ICONS[type as ReactionType]}
-                <span className="font-medium text-[11px]">{count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-      </div>
     </motion.div>
   );
 };
