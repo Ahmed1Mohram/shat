@@ -392,8 +392,15 @@ export const InputArea: React.FC = () => {
 
       mediaRecorderRef.current.onstop = async () => {
         if (chunksRef.current.length > 0 && !isCancelledRef.current) {
-          const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-          const audioFile = new File([blob], "voice_message.webm", { type: 'audio/webm' });
+          const actualMimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+          const blob = new Blob(chunksRef.current, { type: actualMimeType });
+
+          let extension = 'webm';
+          if (actualMimeType.includes('mp4') || actualMimeType.includes('m4a')) {
+            extension = 'mp4';
+          }
+
+          const audioFile = new File([blob], `voice_message.${extension}`, { type: actualMimeType });
 
           if (replyingTo) {
             await replyToMessage(replyingTo.id, '', [audioFile]);
@@ -636,13 +643,8 @@ export const InputArea: React.FC = () => {
                 </button>
               </div>
             )}
-            {/* Main Mic button */}
             <button
-              onMouseDown={recordSystemAudio ? undefined : startRecording}
-              onMouseUp={recordSystemAudio ? undefined : stopRecording}
-              onTouchStart={recordSystemAudio ? undefined : startRecording}
-              onTouchEnd={recordSystemAudio ? undefined : stopRecording}
-              onClick={recordSystemAudio ? startRecording : undefined}
+              onClick={isRecording ? stopRecording : startRecording}
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 shadow-md ${isRecording
                 ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]'
                 : 'bg-blue-500 hover:bg-blue-600 text-white'

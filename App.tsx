@@ -11,7 +11,7 @@ const AppContent: React.FC = () => {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { isDataLoaded } = useChat();
 
-  const shouldShowLoading = isAuthLoading || (user && !isDataLoaded);
+  const shouldShowLoading = isAuthLoading;
 
   if (shouldShowLoading) {
     return (

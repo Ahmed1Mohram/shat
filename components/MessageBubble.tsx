@@ -597,12 +597,6 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                       ? `${currentTheme.bubbleOwn} text-white rounded-br-[5px] shadow-[0_4px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-white/10`
                       : `${currentTheme.bubbleReceived} border-b-transparent rounded-bl-[5px] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)]`
                       }`}
-                    style={{
-                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                      fontWeight: 400,
-                      letterSpacing: 'normal',
-                      wordSpacing: 'normal'
-                    }}
                   >
                     {isEditing && isOwn ? (
                       <div className="flex items-center gap-2 w-full">
@@ -673,9 +667,9 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                       </span>
                       {isOwn && (
                         <span className="text-white/70">
-                          {message.readBy && message.readBy.length > 1
-                            ? <CheckCheck size={12} strokeWidth={2.5} className="text-blue-200" />
-                            : <Check size={12} strokeWidth={2.5} className="text-white/50" />}
+                          {message.status === 'seen' || (message.seenBy && message.seenBy.length > 0)
+                            ? <CheckCheck size={13} strokeWidth={2.5} className="text-blue-300" />
+                            : <Check size={13} strokeWidth={2.5} className="text-white/60" />}
                         </span>
                       )}
                     </div>

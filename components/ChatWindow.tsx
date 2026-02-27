@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatThemePicker, useChatBackground, ChatThemeCtx } from './ChatThemePicker';
 
 export const ChatWindow: React.FC = () => {
-  const { currentConversationId, conversations, messages, selectConversation, blockUser, unblockUser, startCall, toggleVanishMode, muteConversation } = useChat();
+  const { currentConversationId, conversations, messages, selectConversation, blockUser, unblockUser, startCall, toggleVanishMode, muteConversation, isLoadingMessages } = useChat();
   const { theme } = useTheme();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -347,27 +347,42 @@ export const ChatWindow: React.FC = () => {
             background,
           }}
         >
-          {messages.map((msg, index) => {
-            const replyToMsg = msg.replyTo ? messages.find(m => m.id === msg.replyTo) : undefined;
-            const isActiveMatch = searchQuery.trim().length > 0 && matchedIds[searchMatchIndex] === msg.id;
-            return (
-              <div
-                key={msg.id}
-                ref={el => { messageRefs.current[msg.id] = el; }}
-                className={isActiveMatch ? 'rounded-2xl ring-2 ring-violet-400/60 ring-offset-1 ring-offset-transparent transition-all duration-300' : ''}
-              >
-                <MessageBubble
-                  message={msg}
-                  isOwn={msg.senderId !== participant.id}
-                  senderAvatar={participant.avatar}
-                  replyToMessage={replyToMsg}
-                  conversationParticipants={conversation?.participants || []}
-                  isGroup={conversation?.isGroup || false}
-                  searchQuery={searchQuery}
-                />
-              </div>
-            );
-          })}
+          {isLoadingMessages ? (
+            // Skeleton Loader for Messages
+            Array.from({ length: 6 }).map((_, idx) => {
+              const isOwn = idx % 2 === 0;
+              return (
+                <div key={`msg-skeleton-${idx}`} className={`flex w-full ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}>
+                  <div className={`relative px-4 py-3 rounded-[20px] max-w-[70%] md:max-w-[60%] animate-pulse ${isOwn ? 'bg-indigo-300 dark:bg-indigo-900/50 rounded-br-[5px]' : 'bg-gray-200 dark:bg-gray-800 rounded-bl-[5px]'}`}>
+                    <div className="h-4 bg-white/40 dark:bg-white/10 rounded w-48 mb-2"></div>
+                    <div className="h-4 bg-white/40 dark:bg-white/10 rounded w-32"></div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            messages.map((msg, index) => {
+              const replyToMsg = msg.replyTo ? messages.find(m => m.id === msg.replyTo) : undefined;
+              const isActiveMatch = searchQuery.trim().length > 0 && matchedIds[searchMatchIndex] === msg.id;
+              return (
+                <div
+                  key={msg.id}
+                  ref={el => { messageRefs.current[msg.id] = el; }}
+                  className={isActiveMatch ? 'rounded-2xl ring-2 ring-violet-400/60 ring-offset-1 ring-offset-transparent transition-all duration-300' : ''}
+                >
+                  <MessageBubble
+                    message={msg}
+                    isOwn={msg.senderId !== participant.id}
+                    senderAvatar={participant.avatar}
+                    replyToMessage={replyToMsg}
+                    conversationParticipants={conversation?.participants || []}
+                    isGroup={conversation?.isGroup || false}
+                    searchQuery={searchQuery}
+                  />
+                </div>
+              );
+            })
+          )}
 
           {conversation.isTyping && !participant.blockedByMe && !participant.blockedMe && (
             <motion.div

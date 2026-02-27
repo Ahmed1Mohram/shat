@@ -26,6 +26,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+    // Keep references for stale closures in realtime listeners
+    const conversationsRef = useRef(conversations);
+    useEffect(() => {
+        conversationsRef.current = conversations;
+    }, [conversations]);
+
     // Notification Settings
     const [showNotificationContent, setShowNotificationContent] = useState(() => {
         const saved = localStorage.getItem('notif_show_content');
@@ -251,10 +257,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setConversations(convs);
                 setStories(sts);
                 setFriends(fnds);
+
+                if (convs.length > 0 && !currentConversationId && window.innerWidth >= 768) {
+                    selectConversation(convs[0].id);
+                }
             } catch (error) {
                 console.error("Error loading chat data", error);
             } finally {
-                setTimeout(() => setIsDataLoaded(true), 800);
+                setIsDataLoaded(true);
             }
         };
         loadData();
@@ -341,13 +351,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (msg.senderId !== user.id && msg.status === 'sent' && currentConversationId !== msg.conversationId) {
                 supabaseService.markMessagesAsDelivered(msg.conversationId, user.id);
                 // Show notification toast for new message
-                const conversation = conversations.find(c => c.id === msg.conversationId);
+                const conversation = conversationsRef.current.find(c => c.id === msg.conversationId);
                 const sender = conversation?.participants.find(p => p.id === msg.senderId) || conversation?.participants[0];
                 toast((t) => (
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => { toast.dismiss(t.id); selectConversation(msg.conversationId); }}>
-                        <img src={sender?.avatar} alt={sender?.username} className="w-10 h-10 rounded-full object-cover" />
+                        <img src={sender?.avatar || '/cae1afd7f0f92784a8fb32251f4ed8f0.jpg'} className="w-10 h-10 rounded-full object-cover" />
                         <div className="flex flex-col">
-                            <span className="font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{sender?.username}</span>
+                            <span className="font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{sender?.username || 'New Message'}</span>
                             <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[200px]" style={{ fontFamily: 'Inter, sans-serif' }}>
                                 {msg.text || (msg.attachments?.length ? '📎 Media' : 'Media')}
                             </span>
@@ -365,10 +375,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     },
                 });
-                // Browser push notification with sound
+
+                // Browser push notification with sound (even if tab is focused if user wants, but browser restricts without focus sometimes. We'll play the sound regardless)
                 showBrowserNotification(
-                    sender?.username || 'Someone',
-                    sender?.avatar || '',
+                    sender?.username || 'New Message',
+                    sender?.avatar || '/cae1afd7f0f92784a8fb32251f4ed8f0.jpg',
                     msg.text || (msg.attachments?.length ? '📎 Media' : '')
                 );
             }

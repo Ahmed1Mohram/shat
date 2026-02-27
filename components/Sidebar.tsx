@@ -27,7 +27,7 @@ const FONTS = [
 
 export const Sidebar: React.FC = () => {
     const { user, logout, updateProfileImage } = useAuth();
-    const { conversations, selectConversation, currentConversationId, searchUsers, createConversation, stories, postStory, markStoryViewed, deleteStory, sendFriendRequest, acceptFriendRequest, getPendingRequests, sendStoryReply, friends, showNotificationContent, setShowNotificationContent } = useChat();
+    const { conversations, selectConversation, currentConversationId, searchUsers, createConversation, stories, postStory, markStoryViewed, deleteStory, sendFriendRequest, acceptFriendRequest, getPendingRequests, sendStoryReply, friends, showNotificationContent, setShowNotificationContent, isDataLoaded } = useChat();
     const { theme, toggleTheme } = useTheme();
 
     const [activeTab, setActiveTab] = useState<'chats' | 'people' | 'stories'>('chats');
@@ -152,7 +152,7 @@ export const Sidebar: React.FC = () => {
                                     <motion.span
                                         initial={{ scale: 0, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-[#0f1419] z-20"
+                                        className={`absolute -top-1 -right-1 ${totalUnread > 9 ? 'min-w-[18px] px-1.5' : 'w-[18px]'} h-[18px] bg-gradient-to-r from-red-500 to-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-[#0f1419] z-20`}
                                         style={{ fontFamily: 'Inter, -apple-system, sans-serif', fontWeight: 700 }}
                                     >
                                         {totalUnread > 99 ? '99+' : totalUnread}
@@ -213,19 +213,30 @@ export const Sidebar: React.FC = () => {
                         </motion.div>
                     ) : activeTab === 'chats' ? (
                         // Chats List
-                        <motion.div key="chats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-1">
-                            {conversations.map(conv => {
+                        <motion.div key="chats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                            {/* Skeleton Loader inside Sidebar for Chats */}
+                            {!isDataLoaded ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <div key={`skeleton-${i}`} className="p-3 rounded-2xl bg-white/5 dark:bg-dark-card/5 flex items-center gap-3 animate-pulse">
+                                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 flex-shrink-0"></div>
+                                        <div className="flex-1 space-y-2 py-1">
+                                            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
+                                            <div className="space-y-1">
+                                                <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-5/6"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : conversations.map(conv => {
                                 const participant = conv.participants[0] || user!;
                                 const isActive = currentConversationId === conv.id;
                                 return (
                                     <motion.div
                                         key={conv.id}
-                                        layout
+                                        whileHover={{ scale: 0.98 }}
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={() => selectConversation(conv.id)}
-                                        className={`p-3 rounded-2xl cursor-pointer transition-all border ${isActive
-                                            ? 'bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] backdrop-blur-md text-white shadow-lg shadow-[#1a1a2e]/40 border-[#1a1a2e]/50 scale-[1.02]'
-                                            : 'bg-white/50 dark:bg-[#0f1419]/50 hover:bg-white dark:hover:bg-[#0f1419] border-gray-200/50 dark:border-white/10 backdrop-blur-sm'
-                                            } flex items-center gap-3 group`}
+                                        className={`p-3 rounded-2xl cursor-pointer transition-all flex items-center gap-3 relative overflow-hidden ${isActive ? 'bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/25 ring-1 ring-white/20' : 'bg-white/50 dark:bg-dark-card/50 hover:bg-white dark:hover:bg-dark-card border border-transparent hover:border-gray-100 dark:hover:border-white/5'}`}
                                     >
                                         <div className="relative">
                                             <img src={participant.avatar} className={`relative w-12 h-12 rounded-full object-cover border ${isActive ? 'border-white/20' : 'border-gray-100 dark:border-gray-700'}`} />
@@ -257,7 +268,7 @@ export const Sidebar: React.FC = () => {
                                                 </p>
                                                 {conv.unreadCount > 0 && (
                                                     <span
-                                                        className="min-w-[1.25rem] h-5 px-1.5 bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg"
+                                                        className={`${conv.unreadCount > 9 ? 'min-w-[20px] px-1.5' : 'w-5'} h-5 bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg`}
                                                         style={{ fontFamily: 'Inter, -apple-system, sans-serif', fontWeight: 700 }}
                                                     >
                                                         {conv.unreadCount}
@@ -455,7 +466,8 @@ const AdvancedStoryCreator: React.FC<{ onClose: () => void, onPost: (d: Partial<
             chunksRef.current = [];
             mediaRecorderRef.current.ondataavailable = (e) => chunksRef.current.push(e.data);
             mediaRecorderRef.current.onstop = () => {
-                setAudioBlob(new Blob(chunksRef.current, { type: 'audio/webm' }));
+                const actualMimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+                setAudioBlob(new Blob(chunksRef.current, { type: actualMimeType }));
                 stream.getTracks().forEach(t => t.stop());
             };
             mediaRecorderRef.current.start();
@@ -638,7 +650,7 @@ const StoryViewer: React.FC<{
                     lastActive: u.last_active
                 }));
                 // Keep original viewer order
-                const order = new Map(story.viewers.map((id, idx) => [id, idx]));
+                const order = new Map<string, number>(story.viewers.map((id, idx) => [id, idx]));
                 mapped.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
                 setViewerUsers(mapped);
             } catch {
