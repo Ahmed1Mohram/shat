@@ -483,7 +483,7 @@ export const InputArea: React.FC = () => {
   };
 
   return (
-    <div className={`p-3 relative z-20 transition-all duration-300 ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}>
+    <div className={`px-2 py-2 relative z-20 transition-all duration-300 ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}>
 
       {/* Reply Context */}
       <AnimatePresence>
@@ -492,14 +492,12 @@ export const InputArea: React.FC = () => {
             initial={{ opacity: 0, y: 10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: 10, height: 0 }}
-            className="mb-2 mx-2 p-3 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] border-l-4 border-blue-500 flex items-center justify-between shadow-sm"
+            className="mb-2 mx-1 p-2.5 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] border-l-4 border-blue-500 flex items-center justify-between shadow-sm"
           >
-            <div className="flex-1 min-w-0 pr-4">
-              <p className="text-xs font-bold text-blue-500 mb-0.5" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                Replying to {replyingTo.senderId === 'me' ? 'Yourself' : 'User'}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 truncate" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                {replyingTo.text || (replyingTo.attachments?.length ? 'Attachment' : 'Voice Message')}
+            <div className="flex-1 min-w-0 pr-3">
+              <p className="text-xs font-bold text-blue-500 mb-0.5">ردًا على</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
+                {replyingTo.text || (replyingTo.attachments?.length ? 'مرفق' : 'رسالة صوتية')}
               </p>
             </div>
             <button
@@ -512,138 +510,151 @@ export const InputArea: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className={`flex items-end gap-2 relative ${isVanishMode ? 'bg-gray-900/50' : ''} rounded-3xl`}>
+      {/* Single compact row */}
+      <div className={`flex items-end gap-1.5 relative ${isVanishMode ? 'bg-gray-900/50 rounded-3xl p-1' : ''}`}>
 
-        <div className={`flex-1 flex items-center gap-2 p-1.5 rounded-[26px] border transition-all ${theme === 'light' ? 'bg-gray-100 border-transparent focus-within:bg-white focus-within:border-gray-300' : 'bg-[#1a1a1a] border-transparent focus-within:border-gray-700'}`}>
+        {/* Main Pill */}
+        <div className={`flex-1 flex items-end gap-1 px-2 py-1 rounded-[26px] border transition-all ${theme === 'light'
+          ? 'bg-gray-100 border-transparent focus-within:bg-white focus-within:border-gray-300'
+          : 'bg-white/6 backdrop-blur-md border border-white/10 focus-within:border-violet-500/40 focus-within:bg-white/8'
+          }`}>
 
+          {/* Image attach button */}
           <button
-            className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+            className="p-1.5 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full flex-shrink-0 mb-0.5"
             onClick={() => fileInputRef.current?.click()}
           >
-            <ImageIcon size={22} strokeWidth={1.5} />
+            <ImageIcon size={20} strokeWidth={1.5} />
           </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*,video/*,.pdf,.doc,.docx,.zip"
-            multiple
-            onChange={handleFileChange}
-          />
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*,.pdf,.doc,.docx,.zip" multiple onChange={handleFileChange} />
 
+          {/* Auto-grow textarea */}
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              // Auto-grow
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+            }}
             onKeyDown={handleKeyDown}
-            placeholder="Message..."
-            className="flex-1 bg-transparent border-none outline-none text-[15px] resize-none max-h-32 py-2.5 px-1 min-h-[44px] text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+            placeholder="رسالة..."
+            className="flex-1 bg-transparent border-none outline-none text-[15px] resize-none py-2 px-1 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 leading-5"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', height: '36px', minHeight: '36px', maxHeight: '120px', overflowY: 'hidden' }}
             rows={1}
           />
 
-          {!text && (
+          {/* Right-side buttons: change based on text/recording state */}
+          {isRecording ? (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded-full flex-shrink-0 mb-0.5"
+            >
+              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              <span className="text-xs font-mono min-w-[32px]">{formatTime(recordingTime)}</span>
+              <button onClick={cancelRecording} className="p-1 hover:bg-red-600 rounded-full"><X size={14} /></button>
+              <button onClick={stopRecording} className="p-1 hover:bg-red-600 rounded-full"><Check size={14} /></button>
+            </motion.div>
+          ) : text ? (
             <>
               <button
-                className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
-                onClick={() => { setShowGifPicker(!showGifPicker); setShowEmoji(false); }}
-              >
-                <Clapperboard size={22} strokeWidth={1.5} />
-              </button>
-              <button
-                className="p-2 text-gray-500 hover:text-purple-500 dark:text-gray-400 dark:hover:text-purple-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
-                onClick={() => setShowPollCreator(true)}
-                title="Quick Poll"
-              >
-                <BarChart3 size={22} strokeWidth={1.5} />
-              </button>
-              <button
-                className="p-2 text-gray-500 hover:text-pink-500 dark:text-gray-400 dark:hover:text-pink-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
-                onClick={() => { setShowDrawingPad(true); setTimeout(initCanvas, 100); }}
-                title="Draw & Send"
-              >
-                <Pencil size={22} strokeWidth={1.5} />
-              </button>
-              <button
-                className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
-                onClick={() => { setShowEmoji(!showEmoji); setShowGifPicker(false); }}
-              >
-                <Smile size={22} strokeWidth={1.5} />
-              </button>
-            </>
-          )}
-
-          {text && (
-            <>
-              <button
-                className="p-2 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-white/5 flex-shrink-0"
+                className="p-1.5 text-gray-500 hover:text-orange-500 dark:text-gray-400 dark:hover:text-orange-400 transition-colors rounded-full flex-shrink-0 mb-0.5"
                 onClick={() => setShowScheduler(!showScheduler)}
                 title="Schedule Message"
               >
-                <Clock size={20} strokeWidth={1.5} />
+                <Clock size={18} strokeWidth={1.5} />
               </button>
               <button
                 onClick={handleSend}
                 disabled={!text.trim() && attachments.length === 0 && !audioBlob}
-                className="p-2 text-blue-500 font-semibold text-[15px] hover:text-blue-600 dark:hover:text-blue-400 transition-colors mr-1"
-                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+                className="p-1.5 text-blue-500 font-bold text-[15px] hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex-shrink-0 mb-0.5"
               >
-                Send
+                إرسال
+              </button>
+            </>
+          ) : (
+            <>
+              {/* GIF */}
+              <button
+                className="p-1.5 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-full flex-shrink-0 mb-0.5"
+                onClick={() => { setShowGifPicker(!showGifPicker); setShowEmoji(false); }}
+              >
+                <Clapperboard size={20} strokeWidth={1.5} />
+              </button>
+              {/* Poll - hidden on mobile to save space */}
+              <button
+                className="hidden md:flex p-1.5 text-gray-500 hover:text-purple-500 dark:text-gray-400 dark:hover:text-purple-400 transition-colors rounded-full flex-shrink-0 mb-0.5"
+                onClick={() => setShowPollCreator(true)}
+              >
+                <BarChart3 size={20} strokeWidth={1.5} />
+              </button>
+              {/* Draw - hidden on mobile to save space */}
+              <button
+                className="hidden md:flex p-1.5 text-gray-500 hover:text-pink-500 dark:text-gray-400 dark:hover:text-pink-400 transition-colors rounded-full flex-shrink-0 mb-0.5"
+                onClick={() => { setShowDrawingPad(true); setTimeout(initCanvas, 100); }}
+              >
+                <Pencil size={20} strokeWidth={1.5} />
+              </button>
+              {/* Emoji */}
+              <button
+                className="p-1.5 text-gray-500 hover:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors rounded-full flex-shrink-0 mb-0.5"
+                onClick={() => { setShowEmoji(!showEmoji); setShowGifPicker(false); }}
+              >
+                <Smile size={20} strokeWidth={1.5} />
               </button>
             </>
           )}
-
         </div>
 
+        {/* Recording controls — always visible on mobile */}
         {!text && (
-          <div className="flex items-center gap-1 pb-1">
-            {isRecording ? (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex items-center gap-2 bg-red-500 text-white pl-3 pr-1 py-1 rounded-full h-[44px]"
-              >
-                <span className="text-sm font-mono min-w-[40px]">{formatTime(recordingTime)}</span>
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-1"></div>
-                <button onClick={cancelRecording} className="p-2 hover:bg-red-600 rounded-full"><X size={18} /></button>
-                <button onClick={stopRecording} className="p-2 hover:bg-red-600 rounded-full"><Check size={18} /></button>
-              </motion.div>
-            ) : (
-              <>
+          <div className="flex items-center gap-1.5 flex-shrink-0 z-10 bg-white/50 dark:bg-black/20 p-1 rounded-full backdrop-blur-md">
+            {isRecording ? null : (
+              <div className="flex items-center gap-1">
+                {/* HD Mic toggle */}
                 <button
                   onClick={() => setIsHdMic(!isHdMic)}
-                  title={isHdMic ? "HD Studio Mic On" : "Standard Mic"}
-                  className={`p-2.5 rounded-full transition-all flex-shrink-0 mr-1 ${isHdMic
-                    ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                  title={isHdMic ? 'جودة عالية' : 'ميك عادي'}
+                  className={`w-[34px] h-[34px] flex items-center justify-center rounded-full transition-all ${isHdMic
+                    ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400'
+                    : 'bg-transparent text-gray-400 hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                 >
-                  <Sparkles size={20} strokeWidth={1.5} />
+                  <Sparkles size={16} strokeWidth={isHdMic ? 2.5 : 1.5} />
                 </button>
+                {/* Screen audio toggle */}
                 <button
                   onClick={() => setRecordSystemAudio(!recordSystemAudio)}
-                  title={recordSystemAudio ? "Screen + Mic Audio" : "Mic Audio Only"}
-                  className={`p-2.5 rounded-full transition-all flex-shrink-0 mr-1 ${recordSystemAudio
-                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                  title={recordSystemAudio ? 'شاشة + ميك' : 'ميك فقط'}
+                  className={`w-[34px] h-[34px] flex items-center justify-center rounded-full transition-all ${recordSystemAudio
+                    ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                    : 'bg-transparent text-gray-400 hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                 >
-                  <Monitor size={20} strokeWidth={1.5} />
+                  <Monitor size={16} strokeWidth={recordSystemAudio ? 2.5 : 1.5} />
                 </button>
-                <button
-                  onMouseDown={recordSystemAudio ? undefined : startRecording}
-                  onMouseUp={recordSystemAudio ? undefined : stopRecording}
-                  onTouchStart={recordSystemAudio ? undefined : startRecording}
-                  onTouchEnd={recordSystemAudio ? undefined : stopRecording}
-                  onClick={recordSystemAudio ? startRecording : undefined}
-                  className="p-3 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all active:scale-90"
-                >
-                  <Mic size={24} strokeWidth={1.5} />
-                </button>
-              </>
+              </div>
             )}
+            {/* Main Mic button */}
+            <button
+              onMouseDown={recordSystemAudio ? undefined : startRecording}
+              onMouseUp={recordSystemAudio ? undefined : stopRecording}
+              onTouchStart={recordSystemAudio ? undefined : startRecording}
+              onTouchEnd={recordSystemAudio ? undefined : stopRecording}
+              onClick={recordSystemAudio ? startRecording : undefined}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 shadow-md ${isRecording
+                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
+            >
+              <Mic size={18} strokeWidth={2} />
+            </button>
           </div>
         )}
+
       </div>
+
 
       {/* Emoji Picker Popup */}
       <AnimatePresence>

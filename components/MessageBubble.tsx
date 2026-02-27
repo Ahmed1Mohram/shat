@@ -7,6 +7,7 @@ import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
 import twemoji from 'twemoji';
 import toast from 'react-hot-toast';
+import { useChatTheme } from './ChatThemePicker';
 
 interface Props {
   message: Message;
@@ -15,9 +16,29 @@ interface Props {
   replyToMessage?: Message;
   conversationParticipants?: any[];
   isGroup?: boolean;
+  searchQuery?: string;
 }
 
+// Highlight matching text with yellow background
+const HighlightedText: React.FC<{ text: string; query: string }> = ({ text, query }) => {
+  if (!query || query.trim().length < 1) return <>{text}</>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-yellow-300/80 text-black rounded-sm px-0.5">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+};
+
 const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isOwn }) => {
+  const { currentTheme } = useChatTheme();
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -149,10 +170,10 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
 
   return (
     <div className="flex flex-col">
-      <div className={`flex items-center gap-3 p-3 rounded-2xl min-w-[240px] select-none transition-all hover:scale-[1.02] ${isOwn ? 'bg-white/10 backdrop-blur-sm' : 'bg-black/5 dark:bg-white/10'}`}>
+      <div className={`flex items-center gap-3 p-3 rounded-[20px] min-w-[240px] select-none transition-all hover:scale-[1.02] ${isOwn ? 'bg-white/10' : 'bg-white/5'} ${!isOwn ? 'rounded-bl-[5px]' : 'rounded-br-[5px]'}`}>
         <button
           onClick={togglePlay}
-          className={`w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all active:scale-95 hover:scale-110 flex-shrink-0 ${isOwn ? 'bg-white/90 text-[#1a1a2e] hover:bg-white' : 'bg-gradient-to-br from-[#1a1a2e] to-[#0f3460] text-white hover:from-[#16213e] hover:to-[#0a1f3a]'}`}
+          className={`w-10 h-10 flex items-center justify-center rounded-full shadow-md transition-all active:scale-95 hover:scale-110 flex-shrink-0 ${isOwn ? 'bg-white/90 text-[#1a1a2e] hover:bg-white' : 'bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20'}`}
         >
           {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
         </button>
@@ -162,7 +183,7 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
             {displayBars.map((height, i) => (
               <motion.div
                 key={i}
-                className={`w-0.5 rounded-full ${isOwn ? 'bg-white' : 'bg-gray-400 dark:bg-gray-400'}`}
+                className={`w-0.5 rounded-full ${isOwn ? 'bg-white' : 'bg-current'}`}
                 animate={{
                   height: isPlaying ? `${Math.max(15, height)}%` : `${height}%`,
                   opacity: isPlaying ? (i < (progress / 100) * displayBars.length ? 1 : 0.4) : 0.6
@@ -171,16 +192,16 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
               />
             ))}
           </div>
-          <div className={`text-[10px] font-bold ml-0.5 ${isOwn ? 'text-white/90' : 'text-gray-500 dark:text-gray-400'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-            {isPlaying ? formatTime(currentTime) : formatTime(duration)}
+          <div className={`text-[10px] font-bold ml-0.5 ${isOwn ? 'text-white/90' : 'opacity-70'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
+            {isPlaying ? formatTime(currentTime) : (isFinite(duration) && duration > 0 ? formatTime(duration) : '--:--')}
           </div>
         </div>
 
         {/* Transcribe Button */}
         <button
           onClick={transcribeAudio}
-          className={`w-8 h-8 flex items-center justify-center rounded-full transition-all flex-shrink-0 ${isTranscribing ? 'animate-pulse bg-blue-500 text-white' : transcript ? 'bg-green-500 text-white' : isOwn ? 'bg-white/20 text-white/70 hover:bg-white/30' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
-          title={transcript ? 'Hide transcript' : 'Transcribe to text'}
+          className={`w-8 h-8 flex items-center justify-center rounded-full transition-all flex-shrink-0 ${isTranscribing ? 'animate-pulse bg-blue-500 text-white' : transcript ? 'bg-green-500 text-white' : isOwn ? 'bg-white/20 text-white/70 hover:bg-white/30' : 'bg-black/5 dark:bg-white/10 opacity-70 hover:opacity-100'}`}
+          title={transcript ? 'إخفاء النص' : 'تحويل إلى نص'}
         >
           <Type size={14} strokeWidth={2.5} />
         </button>
@@ -201,7 +222,7 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className={`px-3 py-2 text-xs rounded-b-2xl -mt-1 ${isOwn ? 'bg-white/5 text-white/80' : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400'}`}
+            className={`px-3 py-2 text-xs rounded-b-[20px] -mt-2 pt-3 ${isOwn ? 'bg-white/10 text-white/90' : 'bg-black/10 dark:bg-white/5 opacity-90'}`}
           >
             <div className="flex items-center gap-1 mb-1">
               <Type size={10} />
@@ -215,13 +236,29 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
   );
 };
 
-const REACTION_ICONS: Record<ReactionType, React.ReactNode> = {
-  like: <ThumbsUp size={16} />,
-  love: <Heart size={16} fill="currentColor" />,
-  haha: <Smile size={16} />,
-  wow: <Meh size={16} />,
-  sad: <Frown size={16} />,
-  angry: <Angry size={16} />
+const AppleEmoji: React.FC<{ emoji: string; className?: string }> = ({ emoji, className = "w-6 h-6" }) => {
+  return (
+    <span
+      className={`inline-block align-middle ${className}`}
+      dangerouslySetInnerHTML={{
+        __html: twemoji.parse(emoji, {
+          attributes: () => ({ style: 'width: 100%; height: 100%; display: block;' }),
+          callback: function (icon) {
+            return `https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/${icon}.png`;
+          }
+        })
+      }}
+    />
+  );
+};
+
+const REACTION_EMOJIS: Record<ReactionType, string> = {
+  like: '👍',
+  love: '❤️',
+  haha: '😂',
+  wow: '😮',
+  sad: '😢',
+  angry: '🔥'
 };
 
 const REACTION_COLORS: Record<ReactionType, string> = {
@@ -230,10 +267,11 @@ const REACTION_COLORS: Record<ReactionType, string> = {
   haha: 'text-yellow-500',
   wow: 'text-yellow-400',
   sad: 'text-blue-400',
-  angry: 'text-red-600'
+  angry: 'text-orange-500'
 };
 
-export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, replyToMessage, conversationParticipants = [], isGroup = false }) => {
+export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, replyToMessage, conversationParticipants = [], isGroup = false, searchQuery = '' }) => {
+  const { currentTheme } = useChatTheme();
   const { addReaction, removeReaction, replyToMessage: replyToMsg, forwardMessage, editMessage, deleteMessage, pinMessage, unpinMessage, copyMessage } = useChat();
   const { user } = useAuth();
   const [showReactions, setShowReactions] = useState(false);
@@ -464,9 +502,9 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
       >
 
         {replyToMessage && (
-          <div className={`text-xs mb-1 px-3 py-1 rounded-xl border-l-2 bg-gray-100 dark:bg-white/5 opacity-80 ${isOwn ? 'border-blue-500 self-end mr-1' : 'border-purple-500 self-start ml-1'}`}>
-            <span className="font-bold opacity-70 block mb-0.5">Replying to {replyToMessage.senderId === user?.id ? 'You' : 'them'}</span>
-            <span className="italic line-clamp-1 opacity-60">{replyToMessage.text || 'Attachment'}</span>
+          <div className={`text-xs mb-1.5 px-3 py-2 rounded-2xl border-l-[3px] backdrop-blur-sm ${isOwn ? 'border-violet-400 bg-white/10 dark:bg-white/10 self-end mr-1 text-black dark:text-white' : 'border-purple-500 bg-black/10 dark:bg-white/5 self-start ml-1 text-black dark:text-white'}`}>
+            <span className="font-bold opacity-70 block mb-0.5 text-[10px] tracking-wide uppercase">{replyToMessage.senderId === user?.id ? '↩ أنت' : '↩ هم'}</span>
+            <span className="italic line-clamp-1 opacity-60">{replyToMessage.text || 'مرفق'}</span>
           </div>
         )}
 
@@ -484,12 +522,12 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                 {message.isViewOnce && !isOwn && message.viewOnceOpened ? (
                   <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm italic">
                     <EyeOff size={16} />
-                    <span>Photo opened</span>
+                    <span>تم فتح الصورة</span>
                   </div>
                 ) : message.isViewOnce && isOwn ? (
                   <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-sm">
                     <Flame size={16} />
-                    <span>View once photo</span>
+                    <span>صورة تُشاهد مرة واحدة</span>
                   </div>
                 ) : message.attachments.map((att, i) => (
                   att.type === 'image' ? (
@@ -503,12 +541,12 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                         {!viewOnceRevealed && (
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                             <Eye size={32} className="mb-2" />
-                            <span className="text-sm font-medium">Tap to view</span>
+                            <span className="text-sm font-medium">اضغط لعرض الصورة</span>
                           </div>
                         )}
                         {viewOnceRevealed && (
                           <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                            <Flame size={12} /> View once
+                            <Flame size={12} /> تُشاهد مرة واحدة
                           </div>
                         )}
                       </div>
@@ -516,7 +554,7 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                       <img key={i} src={att.url} alt="attachment" className={`rounded-2xl max-h-80 object-cover shadow-sm hover:shadow-md transition-shadow ${isOwn ? 'rounded-br-[4px]' : 'rounded-bl-[4px]'}`} />
                     )
                   ) : att.type === 'audio' || att.name === 'voice_message.webm' || att.url.startsWith('data:audio') ? (
-                    <div key={i} className={`rounded-2xl overflow-hidden shadow-lg ${isOwn ? 'bg-gradient-to-r from-[#1a1a2e] to-[#0f3460] text-white border border-white/10' : 'bg-white/90 dark:bg-[#0f1419]/90 backdrop-blur-sm border border-gray-200/50 dark:border-white/10'}`}>
+                    <div key={i} className={`rounded-2xl overflow-hidden shadow-lg ${isOwn ? `${currentTheme.bubbleOwn} text-white border border-white/10` : `${currentTheme.bubbleReceived} border-white/10`}`}>
                       <CustomAudioPlayer src={att.url} isOwn={isOwn} />
                     </div>
                   ) : (
@@ -554,9 +592,9 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
               ) : (
                 <>
                   <div
-                    className={`px-4 py-2.5 rounded-3xl text-[15px] leading-[1.4] break-words whitespace-pre-wrap transition-all emoji-text ${isOwn
-                      ? 'bg-[#efefef] dark:bg-[#262626] text-black dark:text-white rounded-br-[4px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]'
-                      : 'bg-white dark:bg-[#262626] text-black dark:text-white rounded-bl-[4px] border border-gray-200/60 dark:border-gray-700/60 shadow-[0_1px_2px_rgba(0,0,0,0.03)]'
+                    className={`relative px-4 pt-2.5 pb-[22px] rounded-[20px] text-[15px] leading-[1.55] break-words whitespace-pre-wrap emoji-text overflow-hidden ${isOwn
+                      ? `${currentTheme.bubbleOwn} text-white rounded-br-[5px] shadow-[0_4px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-white/10`
+                      : `${currentTheme.bubbleReceived} border-b-transparent rounded-bl-[5px] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)]`
                       }`}
                     style={{
                       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -587,13 +625,13 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                           onClick={() => { editMessage(message.id, editText); setIsEditing(false); }}
                           className="text-blue-500 text-xs font-semibold"
                         >
-                          Save
+                          حفظ
                         </button>
                         <button
                           onClick={() => { setIsEditing(false); setEditText(message.text); }}
                           className="text-gray-500 text-xs"
                         >
-                          Cancel
+                          إلغاء
                         </button>
                       </div>
                     ) : (
@@ -601,8 +639,12 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                         <span style={{ lineHeight: '1.6', wordBreak: 'break-word' }}>
                           {message.isDeleted ? (
                             <span className="italic text-gray-400 dark:text-gray-500">
-                              {message.deletedFor === 'everyone' ? 'This message was deleted' : 'You deleted this message'}
+                              {message.deletedFor === 'everyone' ? 'تم حذف هذه الرسالة' : 'أنت حذفت هذه الرسالة'}
                             </span>
+                          ) : message.text && (message.text.startsWith('data:image') || message.text.startsWith('https://media.tenor') || message.text.match(/^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i)) ? (
+                            <img src={message.text} alt="media" className="rounded-2xl max-h-80 object-cover" />
+                          ) : searchQuery && message.text ? (
+                            <HighlightedText text={message.text} query={searchQuery} />
                           ) : (
                             <span dangerouslySetInnerHTML={{
                               __html: twemoji.parse(message.text, {
@@ -615,15 +657,26 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
                           )}
                         </span>
                         {message.isEdited && (
-                          <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1 italic">
-                            (edited)
-                          </span>
+                          <span className="text-[10px] opacity-50 mr-1 italic">(عُدِّل)</span>
                         )}
                         {message.isPinned && (
-                          <Pin size={12} className="text-blue-500 ml-1 inline" />
+                          <Pin size={11} className="text-yellow-300 mr-1 inline" fill="currentColor" />
                         )}
                       </>
                     )}
+                    {/* Embedded timestamp inside bubble */}
+                    <div className={`absolute bottom-1.5 ${isOwn ? 'left-3' : 'right-3'} flex items-center gap-1`}>
+                      <span className={`text-[10px] font-medium ${isOwn ? 'text-white/55' : 'text-white/40'}`}>
+                        {format(new Date(message.createdAt), 'h:mm a')}
+                      </span>
+                      {isOwn && (
+                        <span className="text-white/70">
+                          {message.readBy && message.readBy.length > 1
+                            ? <CheckCheck size={12} strokeWidth={2.5} className="text-blue-200" />
+                            : <Check size={12} strokeWidth={2.5} className="text-white/50" />}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {/* Translate Button */}
                   {message.text && !message.isDeleted && !isOnlyEmojis && (
@@ -670,33 +723,40 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
             <div className="relative">
               <button
                 onClick={() => setShowReactions(!showReactions)}
-                className="p-2 bg-white dark:bg-[#1a1a1a] rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-transform"
+                className={`px-2 py-1.5 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 ${myReaction
+                  ? 'bg-violet-500/30 backdrop-blur-sm border border-violet-400/40'
+                  : 'bg-black/50 backdrop-blur-md border border-white/15 hover:bg-black/70'
+                  }`}
               >
                 {myReaction ? (
-                  <span className={REACTION_COLORS[myReaction.type]}>
-                    {REACTION_ICONS[myReaction.type]}
-                  </span>
+                  <AppleEmoji emoji={REACTION_EMOJIS[myReaction.type]} className="w-5 h-5 block" />
                 ) : (
-                  <ThumbsUp size={16} className="text-gray-600 dark:text-gray-400" />
+                  <AppleEmoji emoji="🤍" className="w-[18px] h-[18px] block opacity-70 drop-shadow-sm" />
                 )}
               </button>
 
               <AnimatePresence>
                 {showReactions && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                    initial={{ opacity: 0, scale: 0.7, y: 8 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex gap-1 bg-white dark:bg-[#1a1a1a] rounded-full px-2 py-1.5 shadow-2xl border border-gray-200 dark:border-gray-700 z-50 min-w-max"
+                    exit={{ opacity: 0, scale: 0.7, y: 8 }}
+                    transition={{ type: 'spring', damping: 18, stiffness: 350 }}
+                    className={`absolute bottom-full mb-3 flex gap-1.5 bg-[#0d0d1a]/95 backdrop-blur-xl rounded-full px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-white/12 z-50 ${isOwn ? 'right-0' : 'left-0'}`}
                   >
-                    {Object.entries(REACTION_ICONS).map(([type, icon]) => (
-                      <button
+                    {Object.entries(REACTION_EMOJIS).map(([type, emoji]) => (
+                      <motion.button
                         key={type}
+                        whileHover={{ scale: 1.35, y: -4 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => handleReaction(type as ReactionType)}
-                        className={`p-2 rounded-full hover:scale-125 transition-transform ${REACTION_COLORS[type as ReactionType]}`}
+                        className={`w-9 h-9 flex items-center justify-center rounded-full text-xl transition-colors ${myReaction?.type === type
+                          ? 'bg-violet-500/40 ring-2 ring-violet-400'
+                          : 'hover:bg-white/10'
+                          }`}
                       >
-                        {icon}
-                      </button>
+                        <AppleEmoji emoji={emoji} className="w-[26px] h-[26px] block drop-shadow-md" />
+                      </motion.button>
                     ))}
                   </motion.div>
                 )}
@@ -706,78 +766,80 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1.5 bg-white dark:bg-[#0f1419] rounded-full shadow-lg border border-gray-200 dark:border-white/10 hover:scale-110 transition-transform"
+                className="p-1.5 bg-black/60 dark:bg-black/80 backdrop-blur-md rounded-full shadow-lg border border-white/10 hover:scale-110 transition-all hover:bg-black/70"
               >
-                <MoreVertical size={16} className="text-gray-600 dark:text-gray-400" />
+                <MoreVertical size={14} className="text-white" />
               </button>
 
               <AnimatePresence>
                 {showMenu && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className={`absolute ${isOwn ? 'right-0' : 'left-0'} top-full mt-2 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[140px] z-50`}
+                    initial={{ opacity: 0, scale: 0.85, y: 8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, y: 8 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                    className={`absolute ${isOwn ? 'right-0' : 'left-0'} bottom-full mb-2 bg-[#111]/90 dark:bg-[#0a0a0a]/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/10 overflow-hidden min-w-[160px] z-50`}
                   >
                     <button
                       onClick={() => { copyMessage(message.id); setShowMenu(false); }}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      className="w-full px-4 py-3 text-right text-sm hover:bg-white/8 flex items-center gap-3 text-gray-200 transition-colors"
                     >
-                      <Copy size={18} />
-                      Copy
+                      <Copy size={16} className="text-gray-400" />
+                      نسخ
                     </button>
                     <button
                       onClick={handleReply}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      className="w-full px-4 py-3 text-right text-sm hover:bg-white/8 flex items-center gap-3 text-gray-200 transition-colors"
                     >
-                      <Reply size={18} />
-                      Reply
+                      <Reply size={16} className="text-gray-400" />
+                      رد
                     </button>
                     <button
                       onClick={handleForward}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      className="w-full px-4 py-3 text-right text-sm hover:bg-white/8 flex items-center gap-3 text-gray-200 transition-colors"
                     >
-                      <Forward size={18} />
-                      Forward
+                      <Forward size={16} className="text-gray-400" />
+                      تحويل
                     </button>
                     {isOwn && (
                       <>
                         <button
                           onClick={() => { setIsEditing(true); setEditText(message.text); setShowMenu(false); }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                          className="w-full px-4 py-3 text-right text-sm hover:bg-white/8 flex items-center gap-3 text-gray-200 transition-colors"
                         >
-                          <Edit2 size={18} />
-                          Edit
+                          <Edit2 size={16} className="text-gray-400" />
+                          تعديل
                         </button>
                         <button
                           onClick={() => { deleteMessage(message.id, 'me'); setShowMenu(false); }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 transition-colors"
+                          className="w-full px-4 py-3 text-right text-sm hover:bg-red-500/20 flex items-center gap-3 text-red-400 transition-colors"
                         >
-                          <Trash2 size={18} />
-                          Delete for me
+                          <Trash2 size={16} />
+                          حذف لي
                         </button>
                         <button
                           onClick={() => { deleteMessage(message.id, 'everyone'); setShowMenu(false); }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 dark:text-red-400 transition-colors"
+                          className="w-full px-4 py-3 text-right text-sm hover:bg-red-500/20 flex items-center gap-3 text-red-400 transition-colors"
                         >
-                          <Trash2 size={18} />
-                          Delete for everyone
+                          <Trash2 size={16} />
+                          حذف للجميع
                         </button>
                       </>
                     )}
+                    <div className="h-px bg-white/8 mx-3" />
                     <button
                       onClick={() => { message.isPinned ? unpinMessage(message.id) : pinMessage(message.id); setShowMenu(false); }}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      className="w-full px-4 py-3 text-right text-sm hover:bg-white/8 flex items-center gap-3 text-gray-200 transition-colors"
                     >
-                      <Pin size={18} className={message.isPinned ? 'fill-current' : ''} />
-                      {message.isPinned ? 'Unpin' : 'Pin'}
+                      <Pin size={16} className={`text-gray-400 ${message.isPinned ? 'fill-current text-yellow-400' : ''}`} />
+                      {message.isPinned ? 'إلغاء التثبيت' : 'تثبيت'}
                     </button>
                     <button
-                      onClick={() => { setShowMenu(false); toast(message.isBookmarked ? 'Bookmark removed' : 'Message bookmarked ✨'); }}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors"
+                      onClick={() => { setShowMenu(false); toast(message.isBookmarked ? 'تم إزالة الحفظ' : 'تم حفظ الرسالة ✨'); }}
+                      className="w-full px-4 py-3 text-right text-sm hover:bg-white/8 flex items-center gap-3 text-gray-200 transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={message.isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
-                      {message.isBookmarked ? 'Unbookmark' : 'Bookmark'}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={message.isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={message.isBookmarked ? 'text-yellow-400' : 'text-gray-400'}><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg>
+                      {message.isBookmarked ? 'إلغاء الحفظ' : 'حفظ'}
                     </button>
                   </motion.div>
                 )}
@@ -787,110 +849,49 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
 
         </div>
 
-        {isOwn && (
-          <div className={`flex items-center justify-end mt-1 gap-1.5 ${isOnlyEmojis ? 'opacity-70' : ''}`}>
-            <span className="text-[10.5px] text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {format(new Date(message.createdAt), 'h:mm a')}
-            </span>
-            {message.status === 'sent' && (
-              <Check size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2.5} />
-            )}
-            {message.status === 'delivered' && (
-              <CheckCheck size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2.5} />
-            )}
-            {message.status === 'seen' && (
-              <div className="flex items-center gap-1.5">
-                <CheckCheck size={13} className="text-[#0095f6] dark:text-[#0095f6] flex-shrink-0" strokeWidth={2.5} />
-                {message.seenBy && message.seenBy.length > 0 && (
-                  <div className="flex items-center gap-0.5 -ml-0.5">
-                    <AnimatePresence>
-                      {message.seenBy.slice(0, isGroup ? 3 : 1).map((userId, idx) => {
-                        const seenUser = conversationParticipants.find(p => p.id === userId) || { avatar: senderAvatar };
-                        return (
-                          <motion.img
-                            key={userId}
-                            initial={{ opacity: 0, scale: 0.6, y: -8 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.6 }}
-                            transition={{ delay: idx * 0.08, type: "spring", stiffness: 600, damping: 25 }}
-                            src={seenUser.avatar || senderAvatar}
-                            alt="seen"
-                            className="w-[14px] h-[14px] rounded-full border-[1.5px] border-white dark:border-gray-900 shadow-sm object-cover"
-                            style={{ zIndex: message.seenBy!.length - idx }}
-                          />
-                        );
-                      })}
-                    </AnimatePresence>
-                    {isGroup && message.seenBy.length > 3 && (
-                      <span className="text-[9px] text-gray-500 dark:text-gray-400 ml-0.5 font-medium">
-                        +{message.seenBy.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
 
-        {!isOwn && (
-          <div className="flex items-center justify-start mt-1 gap-1.5">
-            {isGroup && (
-              <span className="text-[10.5px] font-semibold text-gray-700 dark:text-gray-300 mb-0.5" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {message.senderId !== user?.id ? conversationParticipants.find(p => p.id === message.senderId)?.username || 'Unknown' : 'You'}
-              </span>
-            )}
-            <span className="text-[10.5px] text-gray-500 dark:text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {format(new Date(message.createdAt), 'h:mm a')}
-            </span>
-          </div>
-        )}
 
         {message.reactions && message.reactions.length > 0 && (
-          <div className={`mt-1 flex items-center gap-1 flex-wrap ${isOwn ? 'justify-end' : 'justify-start'}`}>
+          <div className={`mt-1.5 flex items-center gap-1.5 flex-wrap ${isOwn ? 'justify-end' : 'justify-start'}`}>
             {Object.entries(
               message.reactions.reduce((acc, r) => {
                 acc[r.type] = (acc[r.type] || 0) + 1;
                 return acc;
               }, {} as Record<ReactionType, number>)
             ).map(([type, count]) => (
-              <div
+              <motion.button
                 key={type}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full bg-white dark:bg-[#1a1a1a] border border-gray-200/80 dark:border-gray-700/80 shadow-sm ${REACTION_COLORS[type as ReactionType]}`}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: 'spring', damping: 15, stiffness: 400 }}
+                onClick={() => handleReaction(type as ReactionType)}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[13px] border border-white/15 backdrop-blur-md shadow-md"
+                style={{
+                  background: myReaction?.type === (type as ReactionType)
+                    ? 'rgba(124,58,237,0.35)'
+                    : isOwn
+                      ? 'rgba(255,255,255,0.18)'
+                      : currentTheme.reactionBg,
+                  boxShadow: myReaction?.type === (type as ReactionType)
+                    ? '0 0 8px rgba(124,58,237,0.4)'
+                    : '0 2px 8px rgba(0,0,0,0.25)',
+                }}
               >
-                {REACTION_ICONS[type as ReactionType]}
-                <span className="font-medium text-[11px]">{count}</span>
-              </div>
+                <AppleEmoji emoji={REACTION_EMOJIS[type as ReactionType]} className="w-[14px] h-[14px] block shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
+                {(count as number) > 1 && (
+                  <span className="text-[10px] font-bold text-white/85">{count as number}</span>
+                )}
+              </motion.button>
             ))}
           </div>
         )}
 
-        {/* Smart Reply Suggestions */}
-        {!isOwn && getSmartReplies().length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-1.5 mt-2 flex-wrap"
-          >
-            <Sparkles size={12} className="text-purple-400 flex-shrink-0" />
-            {getSmartReplies().map((reply, i) => (
-              <motion.button
-                key={i}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => {
-                  replyToMsg(message);
-                }}
-                className="px-3 py-1 text-xs font-medium rounded-full border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all hover:scale-105 active:scale-95"
-              >
-                {reply}
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
+
+
 
       </div>
-    </motion.div>
+    </motion.div >
   );
 };
