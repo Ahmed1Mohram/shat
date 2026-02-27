@@ -514,7 +514,7 @@ export const InputArea: React.FC = () => {
       <div className={`flex items-end gap-1.5 relative ${isVanishMode ? 'bg-gray-900/50 rounded-3xl p-1' : ''}`}>
 
         {/* Main Pill */}
-        <div className={`flex-1 flex items-end gap-1 px-2 py-1 rounded-[26px] border transition-all ${theme === 'light'
+        <div className={`flex-1 min-w-0 flex items-end gap-1 px-2 py-1 rounded-[26px] border transition-all ${theme === 'light'
           ? 'bg-gray-100 border-transparent focus-within:bg-white focus-within:border-gray-300'
           : 'bg-white/6 backdrop-blur-md border border-white/10 focus-within:border-violet-500/40 focus-within:bg-white/8'
           }`}>
@@ -539,7 +539,7 @@ export const InputArea: React.FC = () => {
             }}
             onKeyDown={handleKeyDown}
             placeholder="رسالة..."
-            className="flex-1 bg-transparent border-none outline-none text-[15px] resize-none py-2 px-1 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 leading-5"
+            className="flex-1 min-w-0 w-full bg-transparent border-none outline-none text-[15px] resize-none py-2 px-1 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 leading-5"
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', height: '36px', minHeight: '36px', maxHeight: '120px', overflowY: 'hidden' }}
             rows={1}
           />

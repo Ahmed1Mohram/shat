@@ -170,7 +170,7 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
 
   return (
     <div className="flex flex-col">
-      <div className={`flex items-center gap-3 p-3 rounded-[20px] min-w-[240px] select-none transition-all hover:scale-[1.02] ${isOwn ? 'bg-white/10' : 'bg-white/5'} ${!isOwn ? 'rounded-bl-[5px]' : 'rounded-br-[5px]'}`}>
+      <div className={`flex items-center gap-3 p-3 rounded-[20px] w-full max-w-[260px] select-none transition-all hover:scale-[1.02] ${isOwn ? 'bg-white/10' : 'bg-white/5'} ${!isOwn ? 'rounded-bl-[5px]' : 'rounded-br-[5px]'}`}>
         <button
           onClick={togglePlay}
           className={`w-10 h-10 flex items-center justify-center rounded-full shadow-md transition-all active:scale-95 hover:scale-110 flex-shrink-0 ${isOwn ? 'bg-white/90 text-[#1a1a2e] hover:bg-white' : 'bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20'}`}
@@ -178,8 +178,8 @@ const CustomAudioPlayer: React.FC<{ src: string; isOwn: boolean }> = ({ src, isO
           {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
         </button>
 
-        <div className="flex flex-col flex-1 gap-1.5 min-w-0">
-          <div className="flex items-center gap-0.5 h-8 opacity-90">
+        <div className="flex flex-col flex-1 gap-1.5 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-0.5 h-8 opacity-90 w-full overflow-hidden">
             {displayBars.map((height, i) => (
               <motion.div
                 key={i}
@@ -592,14 +592,16 @@ export const MessageBubble: React.FC<Props> = ({ message, isOwn, senderAvatar, r
               ) : (
                 <>
                   <div
+                    dir="auto"
                     className={`relative px-4 pt-2.5 pb-[22px] rounded-[20px] text-[15px] leading-[1.55] break-words whitespace-pre-wrap emoji-text overflow-hidden ${isOwn
                       ? `${currentTheme.bubbleOwn} text-white rounded-br-[5px] shadow-[0_4px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.25)] ring-1 ring-white/10`
                       : `${currentTheme.bubbleReceived} border-b-transparent rounded-bl-[5px] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)]`
                       }`}
                     style={{
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                       fontWeight: 400,
-                      letterSpacing: '-0.01em'
+                      letterSpacing: 'normal',
+                      wordSpacing: 'normal'
                     }}
                   >
                     {isEditing && isOwn ? (
