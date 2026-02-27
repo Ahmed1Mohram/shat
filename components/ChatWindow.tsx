@@ -82,7 +82,7 @@ export const ChatWindow: React.FC = () => {
       }}
     >
       {/* Header - Instagram Style */}
-      <div className={`flex items-center justify-between px-4 py-3 sticky top-0 z-20 border-b border-gray-100 dark:border-gray-800 ${theme === 'light' ? 'bg-white' : 'bg-black'}`}>
+      <div className={`flex items-center justify-between px-3 md:px-4 py-2 md:py-3 sticky top-0 z-20 border-b border-gray-100 dark:border-gray-800 safe-top ${theme === 'light' ? 'bg-white' : 'bg-black'}`}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
             onClick={() => selectConversation('')}
@@ -92,7 +92,7 @@ export const ChatWindow: React.FC = () => {
           </button>
 
           <div className="relative cursor-pointer flex-shrink-0">
-            <img src={participant.avatar} alt={participant.username} className="w-11 h-11 rounded-full object-cover border border-gray-100 dark:border-gray-800" />
+            <img src={participant.avatar} alt={participant.username} className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover border border-gray-100 dark:border-gray-800" />
             {participant.isOnline && !participant.blockedByMe && !participant.blockedMe && (
               <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-black rounded-full"></div>
             )}
@@ -205,10 +205,10 @@ export const ChatWindow: React.FC = () => {
       {/* Messages - Instagram Style - IMPROVED */}
       <div
         className={`flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-1 relative z-10 scroll-smooth emoji-text ${conversation?.isVanishMode
-            ? 'bg-black/35 backdrop-blur-[1px]'
-            : theme === 'light'
-              ? 'bg-white'
-              : 'bg-white/35 dark:bg-black/35 backdrop-blur-[1px]'
+          ? 'bg-black/35 backdrop-blur-[1px]'
+          : theme === 'light'
+            ? 'bg-white'
+            : 'bg-white/35 dark:bg-black/35 backdrop-blur-[1px]'
           }`}
         style={{
           fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "Inter", "Poppins", sans-serif'
@@ -260,7 +260,7 @@ export const ChatWindow: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="relative z-20">
+      <div className="relative z-20 safe-bottom input-safe-area">
         {participant.blockedByMe ? (
           <div className="p-4 bg-gray-100 dark:bg-dark-surface/80 text-center border-t border-gray-200 dark:border-white/5 transition-colors duration-300">
             <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">You have blocked this user. <button onClick={handleBlockAction} className="text-blue-500 hover:underline">Unblock</button> to send messages.</span>

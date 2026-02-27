@@ -26,6 +26,60 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+    // Notification Settings
+    const [showNotificationContent, setShowNotificationContent] = useState(() => {
+        const saved = localStorage.getItem('notif_show_content');
+        return saved !== null ? saved === 'true' : true;
+    });
+
+    // Save notification preference
+    useEffect(() => {
+        localStorage.setItem('notif_show_content', String(showNotificationContent));
+    }, [showNotificationContent]);
+
+    // Request notification permission on mount
+    useEffect(() => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }, []);
+
+    // Notification sound using Web Audio API
+    const playNotificationSound = () => {
+        try {
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        } catch (e) { /* Audio not available */ }
+    };
+
+    // Show browser push notification
+    const showBrowserNotification = (senderName: string, senderAvatar: string, messageText: string) => {
+        if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+            const title = showNotificationContent ? senderName : 'Bat Man';
+            const body = showNotificationContent ? (messageText || '📎 Media') : 'New Message';
+            const notification = new Notification(title, {
+                body,
+                icon: senderAvatar || '/cae1afd7f0f92784a8fb32251f4ed8f0.jpg',
+                badge: '/cae1afd7f0f92784a8fb32251f4ed8f0.jpg',
+                silent: true,
+                tag: 'bat-man-msg',
+            });
+            notification.onclick = () => { window.focus(); notification.close(); };
+            setTimeout(() => notification.close(), 5000);
+        }
+        playNotificationSound();
+    };
+
     // Call State
     const [activeCall, setActiveCall] = useState<Call | null>(null);
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -290,12 +344,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const conversation = conversations.find(c => c.id === msg.conversationId);
                 const sender = conversation?.participants.find(p => p.id === msg.senderId) || conversation?.participants[0];
                 toast((t) => (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => { toast.dismiss(t.id); selectConversation(msg.conversationId); }}>
                         <img src={sender?.avatar} alt={sender?.username} className="w-10 h-10 rounded-full object-cover" />
                         <div className="flex flex-col">
                             <span className="font-semibold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>{sender?.username}</span>
                             <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[200px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                                {msg.text || 'Media'}
+                                {msg.text || (msg.attachments?.length ? '📎 Media' : 'Media')}
                             </span>
                         </div>
                     </div>
@@ -311,6 +365,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     },
                 });
+                // Browser push notification with sound
+                showBrowserNotification(
+                    sender?.username || 'Someone',
+                    sender?.avatar || '',
+                    msg.text || (msg.attachments?.length ? '📎 Media' : '')
+                );
             }
         });
 
@@ -435,19 +495,25 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const sendMessage = async (text: string, files: File[] = []) => {
+    const sendMessage = async (text: string, files: (File | { type: string; url: string; name: string })[] = []) => {
         if (!user || !currentConversationId) return;
         const tempId = `temp-${Date.now()}`;
         const tempAttachments = await Promise.all(files.map(async (file) => {
+            // If it's already a pre-built attachment object (e.g., GIF URL, drawing data URL)
+            if ('url' in file && 'type' in file && !(file instanceof File)) {
+                return file as { type: 'image' | 'audio' | 'file'; url: string; name: string };
+            }
+            // Otherwise it's a File, convert to base64
+            const f = file as File;
             const base64 = await new Promise<string>((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target?.result as string);
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(f);
             });
             let type: 'image' | 'audio' | 'file' = 'file';
-            if (file.type.startsWith('image/')) type = 'image';
-            else if (file.type.startsWith('audio/')) type = 'audio';
-            return { type, url: base64, name: file.name };
+            if (f.type.startsWith('image/')) type = 'image';
+            else if (f.type.startsWith('audio/')) type = 'audio';
+            return { type, url: base64, name: f.name };
         }));
 
         const optimisticMsg: Message = {
@@ -834,7 +900,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             acceptCall,
             endCall,
             localStream,
-            remoteStream
+            remoteStream,
+            // Notification Settings
+            showNotificationContent,
+            setShowNotificationContent
         }}>
             {children}
         </ChatContext.Provider>

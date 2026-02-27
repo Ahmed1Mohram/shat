@@ -165,7 +165,8 @@ export const InputArea: React.FC = () => {
   const sendGif = async (gifUrl: string) => {
     setShowGifPicker(false);
     setGifSearch('');
-    await sendMessage(gifUrl);
+    // Send GIF as image attachment, not as text
+    await sendMessage('', [{ type: 'image', url: gifUrl, name: 'gif.gif' } as any]);
   };
 
   // --- Poll Logic ---
@@ -279,7 +280,8 @@ export const InputArea: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
-    await sendMessage(dataUrl);
+    // Send drawing as image attachment, not as text
+    await sendMessage('', [{ type: 'image', url: dataUrl, name: 'doodle.png' } as any]);
     setShowDrawingPad(false);
     toast.success('Doodle sent! \u270F\uFE0F');
   };
@@ -653,15 +655,15 @@ export const InputArea: React.FC = () => {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="absolute bottom-full left-0 right-0 mb-2 z-50 flex justify-center"
           >
-            <div className="shadow-2xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div className="shadow-2xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 w-full md:w-auto">
               <EmojiPicker
                 onEmojiClick={(emojiData) => {
                   setText(prev => prev + emojiData.emoji);
                 }}
                 theme={theme === 'dark' ? EmojiTheme.DARK : EmojiTheme.LIGHT}
                 emojiStyle={EmojiStyle.APPLE}
-                width={320}
-                height={380}
+                width={typeof window !== 'undefined' && window.innerWidth < 768 ? window.innerWidth - 32 : 320}
+                height={typeof window !== 'undefined' && window.innerWidth < 768 ? 300 : 380}
                 searchPlaceholder="Search emoji..."
                 previewConfig={{ showPreview: false }}
               />
@@ -680,7 +682,7 @@ export const InputArea: React.FC = () => {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="absolute bottom-full left-0 right-0 mb-2 z-50 flex justify-center"
           >
-            <div className={`shadow-2xl rounded-2xl overflow-hidden border w-[340px] ${theme === 'dark' ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-200'}`}>
+            <div className={`shadow-2xl rounded-2xl overflow-hidden border w-full md:w-[340px] ${theme === 'dark' ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-200'}`}>
               <div className="p-3">
                 <input
                   type="text"

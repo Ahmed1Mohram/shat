@@ -123,7 +123,7 @@ export interface ChatContextType {
   stories: Story[];
   friends: User[];
   selectConversation: (id: string) => void;
-  sendMessage: (text: string, attachments?: File[]) => Promise<void>;
+  sendMessage: (text: string, attachments?: (File | { type: string; url: string; name: string })[]) => Promise<void>;
   isLoadingMessages: boolean;
   isDataLoaded: boolean;
   isConnected: boolean;
@@ -166,6 +166,10 @@ export interface ChatContextType {
   endCall: () => void;
   remoteStream: MediaStream | null;
   localStream: MediaStream | null;
+
+  // Notification Settings
+  showNotificationContent: boolean;
+  setShowNotificationContent: (value: boolean) => void;
 }
 
 export interface ThemeContextType {

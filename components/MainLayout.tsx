@@ -19,7 +19,7 @@ export const MainLayout: React.FC = () => {
   });
 
   return (
-    <div className={`flex h-screen overflow-hidden p-0 md:p-4 lg:p-6 gap-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}>
+    <div className={`flex h-[100dvh] overflow-hidden p-0 md:p-4 lg:p-6 gap-4 transition-colors duration-300 ${theme === 'light' ? 'bg-white' : 'bg-transparent'}`}>
       {/* 
         DESKTOP LAYOUT (md and up):
         Side-by-side, static layout. No sliding between panels, just internal content animations.
@@ -47,7 +47,7 @@ export const MainLayout: React.FC = () => {
       >
         <AnimatePresence mode="wait">
           {currentConversationId ? (
-            <motion.div 
+            <motion.div
               key="chat"
               className="h-full w-full"
               initial={{ opacity: 0 }}
@@ -58,7 +58,7 @@ export const MainLayout: React.FC = () => {
               <ChatWindow />
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key="empty"
               className="h-full w-full"
               initial={{ opacity: 0 }}
@@ -119,15 +119,15 @@ export const MainLayout: React.FC = () => {
 const EmptyState = () => (
   <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-white/50 dark:bg-transparent">
     <div className="relative mb-8">
-        <div className="absolute inset-0 bg-primary-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
-        {/* Updated Logo Container: Circular with Image */}
-        <div className="relative w-32 h-32 bg-white dark:bg-black rounded-full shadow-xl flex items-center justify-center border border-gray-100 dark:border-white/10 overflow-hidden">
-            <img 
-              src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg" 
-              alt="Lumina Logo" 
-              className="w-full h-full object-cover opacity-90"
-            />
-        </div>
+      <div className="absolute inset-0 bg-primary-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
+      {/* Updated Logo Container: Circular with Image */}
+      <div className="relative w-32 h-32 bg-white dark:bg-black rounded-full shadow-xl flex items-center justify-center border border-gray-100 dark:border-white/10 overflow-hidden">
+        <img
+          src="/cae1afd7f0f92784a8fb32251f4ed8f0.jpg"
+          alt="Lumina Logo"
+          className="w-full h-full object-cover opacity-90"
+        />
+      </div>
     </div>
     <h2 className="text-4xl font-black text-gray-800 dark:text-white mb-3 tracking-widest uppercase font-cinzel">Bat Man</h2>
     <p className="text-gray-500 dark:text-gray-300 max-w-sm text-lg leading-relaxed font-sans">

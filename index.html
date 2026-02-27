@@ -1,412 +1,552 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bat Man</title>
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://bat-man1.vercel.app/" />
-    <meta property="og:title" content="Bat Man" />
-    <meta property="og:description" content="Bat Man - Chat Application" />
-    <meta property="og:image" content="https://bat-man1.vercel.app/download.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://bat-man1.vercel.app/" />
-    <meta property="twitter:title" content="Bat Man" />
-    <meta property="twitter:description" content="Bat Man - Chat Application" />
-    <meta property="twitter:image" content="https://bat-man1.vercel.app/download.jpg" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: [
-                '-apple-system',
-                'BlinkMacSystemFont',
-                '"Segoe UI"',
-                'Roboto',
-                'Helvetica',
-                'Arial',
-                'sans-serif',
-                '"Inter"',
-                '"Poppins"',
-                '"SF Pro Display"',
-                '"Helvetica Neue"',
-              ],
-              display: [
-                '-apple-system',
-                'BlinkMacSystemFont',
-                '"Segoe UI"',
-                '"Inter"',
-                '"Poppins"',
-                '"SF Pro Display"',
-                'sans-serif'
-              ],
-              numbers: [
-                '"Inter"',
-                '"SF Pro Display"',
-                '-apple-system',
-                'BlinkMacSystemFont',
-                'sans-serif'
-              ],
-              cinzel: ['"Cinzel"', 'serif'],
-              emoji: [
-                '"Apple Color Emoji"',
-                '"Segoe UI Emoji"',
-                '"Segoe UI Symbol"',
-                '"Noto Color Emoji"',
-                '"Android Emoji"',
-                'sans-serif'
-              ],
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Bat Man</title>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bat-man1.vercel.app/" />
+  <meta property="og:title" content="Bat Man" />
+  <meta property="og:description" content="Bat Man - Chat Application" />
+  <meta property="og:image" content="https://bat-man1.vercel.app/download.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://bat-man1.vercel.app/" />
+  <meta property="twitter:title" content="Bat Man" />
+  <meta property="twitter:description" content="Bat Man - Chat Application" />
+  <meta property="twitter:image" content="https://bat-man1.vercel.app/download.jpg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: [
+              '-apple-system',
+              'BlinkMacSystemFont',
+              '"Segoe UI"',
+              'Roboto',
+              'Helvetica',
+              'Arial',
+              'sans-serif',
+              '"Inter"',
+              '"Poppins"',
+              '"SF Pro Display"',
+              '"Helvetica Neue"',
+            ],
+            display: [
+              '-apple-system',
+              'BlinkMacSystemFont',
+              '"Segoe UI"',
+              '"Inter"',
+              '"Poppins"',
+              '"SF Pro Display"',
+              'sans-serif'
+            ],
+            numbers: [
+              '"Inter"',
+              '"SF Pro Display"',
+              '-apple-system',
+              'BlinkMacSystemFont',
+              'sans-serif'
+            ],
+            cinzel: ['"Cinzel"', 'serif'],
+            emoji: [
+              '"Apple Color Emoji"',
+              '"Segoe UI Emoji"',
+              '"Segoe UI Symbol"',
+              '"Noto Color Emoji"',
+              '"Android Emoji"',
+              'sans-serif'
+            ],
+          },
+          colors: {
+            primary: {
+              50: '#f0f4ff',
+              100: '#e0eaff',
+              200: '#c7d9fe',
+              300: '#a4c2fe',
+              400: '#81a4fc',
+              500: '#5b7ff6',
+              600: '#385ceb',
+              700: '#2b46d6',
+              800: '#2639ad',
+              900: '#223289',
             },
-            colors: {
-              primary: {
-                50: '#f0f4ff',
-                100: '#e0eaff',
-                200: '#c7d9fe',
-                300: '#a4c2fe',
-                400: '#81a4fc',
-                500: '#5b7ff6',
-                600: '#385ceb',
-                700: '#2b46d6',
-                800: '#2639ad',
-                900: '#223289',
-              },
-              batman: {
-                dark: '#0a0f1a',
-                navy: '#1a1a2e',
-                blue: '#16213e',
-                deep: '#0f3460',
-              },
-              dark: {
-                bg: '#0a0f1a',
-                surface: '#0f1419',
-                card: '#1a1a2e',
-                border: '#16213e'
-              }
+            batman: {
+              dark: '#0a0f1a',
+              navy: '#1a1a2e',
+              blue: '#16213e',
+              deep: '#0f3460',
             },
-            animation: {
-              'blob': 'blob 10s infinite',
-              'fade-in': 'fadeIn 0.8s ease-out',
-              'float': 'float 6s ease-in-out infinite',
-            },
-            keyframes: {
-              blob: {
-                '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                '33%': { transform: 'translate(20px, -30px) scale(1.05)' },
-                '66%': { transform: 'translate(-10px, 10px) scale(0.95)' },
-                '100%': { transform: 'translate(0px, 0px) scale(1)' },
-              },
-              fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-10px)' },
-              }
+            dark: {
+              bg: '#0a0f1a',
+              surface: '#0f1419',
+              card: '#1a1a2e',
+              border: '#16213e'
             }
           },
+          animation: {
+            'blob': 'blob 10s infinite',
+            'fade-in': 'fadeIn 0.8s ease-out',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(20px, -30px) scale(1.05)' },
+              '66%': { transform: 'translate(-10px, 10px) scale(0.95)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
         },
-      }
-    </script>
-    <style>
-      /* Enhanced Emoji Support - iPhone Style */
-      @font-face {
-        font-family: 'Apple Color Emoji';
-        src: local('Apple Color Emoji');
-      }
-      
-      @font-face {
-        font-family: 'Segoe UI Emoji';
-        src: local('Segoe UI Emoji');
-      }
-      
-      @font-face {
-        font-family: 'Noto Color Emoji';
-        src: local('Noto Color Emoji');
-      }
-      
-      /* Emoji rendering optimization */
+      },
+    }
+  </script>
+  <style>
+    /* Enhanced Emoji Support - iPhone Style */
+    @font-face {
+      font-family: 'Apple Color Emoji';
+      src: local('Apple Color Emoji');
+    }
+
+    @font-face {
+      font-family: 'Segoe UI Emoji';
+      src: local('Segoe UI Emoji');
+    }
+
+    @font-face {
+      font-family: 'Noto Color Emoji';
+      src: local('Noto Color Emoji');
+    }
+
+    /* Emoji rendering optimization */
+    * {
+      font-variant-emoji: emoji;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #f8fafc;
+      /* Light Mode: Specific Bat Silhouette Image */
+      background-image: url('/png-clipart-bat-silhouette-icon-batman-white-mammal-1.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 500px;
+      background-attachment: fixed;
+      transition: background-image 0.5s ease, background-color 0.5s ease;
+      /* Enhanced Emoji Font Stack - iPhone Priority */
+      font-family:
+        "Inter",
+        "Poppins",
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        sans-serif;
+      font-feature-settings: "liga", "kern";
+    }
+
+    /* Ensure emojis render properly - iPhone Style */
+    .emoji,
+    [class*="emoji"],
+    span[role="img"],
+    .emoji-text {
+      font-family:
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        "Noto Color Emoji",
+        "Android Emoji",
+        "EmojiSymbols",
+        "EmojiOne Mozilla",
+        "Twemoji Mozilla",
+        "Plus Jakarta Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      font-style: normal;
+      font-weight: normal;
+      font-variant: normal;
+      text-transform: none;
+      font-feature-settings: "liga", "kern";
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Enhanced emoji rendering in text - iPhone Style */
+    .emoji-text {
+      font-size: 1em;
+      line-height: 1.6;
+      font-family:
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        "Noto Color Emoji",
+        "Android Emoji",
+        "EmojiSymbols",
+        "EmojiOne Mozilla",
+        "Twemoji Mozilla",
+        "Plus Jakarta Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif !important;
+      font-variant-emoji: emoji;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .emoji-text * {
+      font-family: inherit !important;
+    }
+
+    /* Force emoji rendering in all text elements */
+    .emoji-text,
+    .emoji-text span,
+    .emoji-text div,
+    .emoji-text p {
+      font-family:
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        "Noto Color Emoji",
+        "Plus Jakarta Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif !important;
+    }
+
+    /* Fix for emoji display issues - ensure proper rendering */
+    .emoji-text::before,
+    .emoji-text::after {
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+    }
+
+    /* Specific fix for message bubbles */
+    [class*="rounded-2xl"].emoji-text {
+      font-family:
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        "Noto Color Emoji",
+        "Plus Jakarta Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif !important;
+    }
+
+    .dark body {
+      background-color: #0a0f1a;
+      /* Dark Mode: Specific Batman Art Image - Premium Dark Theme */
+      background-image: linear-gradient(rgba(10, 15, 26, 0.85), rgba(26, 26, 46, 0.75)), url('/cae1afd7f0f92784a8fb32251f4ed8f0.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .dark .glass-panel {
+      /* Premium Dark Mode - Batman Style */
+      background: rgba(15, 20, 35, 0.6);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-input {
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .dark .glass-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .glass-header {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .dark .glass-header {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Emoji rendering fixes for all browsers */
+    @supports (font-variant-emoji: emoji) {
       * {
         font-variant-emoji: emoji;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
       }
-      
-      body {
-        margin: 0;
-        overflow: hidden;
-        background-color: #f8fafc;
-        /* Light Mode: Specific Bat Silhouette Image */
-        background-image: url('/png-clipart-bat-silhouette-icon-batman-white-mammal-1.png');
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: 500px;
-        background-attachment: fixed;
-        transition: background-image 0.5s ease, background-color 0.5s ease;
-        /* Enhanced Emoji Font Stack - iPhone Priority */
-        font-family: 
-          "Inter",
-          "Poppins",
-          -apple-system, 
-          BlinkMacSystemFont,
-          "SF Pro Display",
-          "Segoe UI", 
-          Roboto, 
-          "Helvetica Neue", 
-          Arial,
-          "Apple Color Emoji",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          sans-serif;
-        font-feature-settings: "liga", "kern";
-      }
-      
-      /* Ensure emojis render properly - iPhone Style */
-      .emoji, [class*="emoji"], span[role="img"], .emoji-text {
-        font-family: 
-          "Apple Color Emoji",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          "Noto Color Emoji",
-          "Android Emoji",
-          "EmojiSymbols",
-          "EmojiOne Mozilla",
-          "Twemoji Mozilla",
-          "Plus Jakarta Sans",
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-        font-style: normal;
-        font-weight: normal;
-        font-variant: normal;
-        text-transform: none;
-        font-feature-settings: "liga", "kern";
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      
-      /* Enhanced emoji rendering in text - iPhone Style */
+    }
+
+    /* Ensure proper emoji rendering in all contexts */
+    textarea,
+    input,
+    div,
+    span,
+    p {
+      font-variant-emoji: emoji;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Fix for Windows emoji rendering */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
       .emoji-text {
-        font-size: 1em;
-        line-height: 1.6;
-        font-family: 
-          "Apple Color Emoji",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          "Noto Color Emoji",
-          "Android Emoji",
-          "EmojiSymbols",
-          "EmojiOne Mozilla",
-          "Twemoji Mozilla",
-          "Plus Jakarta Sans",
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif !important;
-        font-variant-emoji: emoji;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-feature-settings: "liga", "kern";
+        font-feature-settings: "liga", "kern";
       }
-      
-      .emoji-text * {
-        font-family: inherit !important;
-      }
-      
-      /* Force emoji rendering in all text elements */
-      .emoji-text,
-      .emoji-text span,
-      .emoji-text div,
-      .emoji-text p {
-        font-family: 
-          "Apple Color Emoji",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          "Noto Color Emoji",
-          "Plus Jakarta Sans",
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif !important;
-      }
-      
-      /* Fix for emoji display issues - ensure proper rendering */
-      .emoji-text::before,
-      .emoji-text::after {
-        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
-      }
-      
-      /* Specific fix for message bubbles */
-      [class*="rounded-2xl"].emoji-text {
-        font-family: 
-          "Apple Color Emoji",
-          "Segoe UI Emoji",
-          "Segoe UI Symbol",
-          "Noto Color Emoji",
-          "Plus Jakarta Sans",
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif !important;
-      }
-      
-      .dark body {
-        background-color: #0a0f1a;
-        /* Dark Mode: Specific Batman Art Image - Premium Dark Theme */
-        background-image: linear-gradient(rgba(10,15,26,0.85), rgba(26,26,46,0.75)), url('/cae1afd7f0f92784a8fb32251f4ed8f0.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
+    }
+
+    /* Fix for timestamp display - normal text, no boxes - STRONG OVERRIDE */
+    span[class*="text-\[10\.5px\]"],
+    span[class*="text-\[11px\]"],
+    span[class*="text-\[10px\]"],
+    span[class*="text-\[9px\]"],
+    span[class*="text-gray-500"],
+    span[class*="text-gray-400"],
+    span[class*="text-gray-500"] *,
+    span[class*="text-gray-400"] * {
+      font-variant-numeric: normal !important;
+      font-feature-settings: normal !important;
+      font-variant-ligatures: normal !important;
+      font-kerning: normal !important;
+      letter-spacing: normal !important;
+      word-spacing: normal !important;
+      text-transform: none !important;
+      font-stretch: normal !important;
+      display: inline !important;
+      white-space: nowrap !important;
+      -webkit-font-feature-settings: normal !important;
+      -moz-font-feature-settings: normal !important;
+      -ms-font-feature-settings: normal !important;
+      font-variant: normal !important;
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    /* Remove any box styling from numbers - ALL POSSIBLE SELECTORS */
+    span[class*="text-gray-500"]::before,
+    span[class*="text-gray-400"]::before,
+    span[class*="text-gray-500"]::after,
+    span[class*="text-gray-400"]::after,
+    span[class*="text-\[10\.5px\]"]::before,
+    span[class*="text-\[10\.5px\]"]::after {
+      display: none !important;
+      content: none !important;
+      background: transparent !important;
+      border: none !important;
+    }
+
+    /* Override any Tailwind numeric classes */
+    .tabular-nums,
+    [class*="tabular"],
+    [class*="oldstyle"] {
+      font-variant-numeric: normal !important;
+      font-feature-settings: normal !important;
+    }
+
+    /* Twemoji styling to match text size */
+    img.emoji {
+      height: 1.25em;
+      width: 1.25em;
+      margin: 0 .05em 0 .1em;
+      vertical-align: -0.2em;
+      display: inline-block;
+    }
+
+    /* Ensure giant emojis for emoji-only messages remain large */
+    .text-6xl img.emoji {
+      height: 1em;
+      width: 1em;
+      margin: 0;
+      vertical-align: baseline;
+    }
+
+    /* ============ MOBILE OPTIMIZATION ============ */
+
+    /* Use dynamic viewport height for mobile (fixes iOS address bar) */
+    html,
+    body,
+    #root {
+      height: 100dvh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    /* Safe area padding for notched phones */
+    .safe-top {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .safe-left {
+      padding-left: env(safe-area-inset-left, 0px);
+    }
+
+    .safe-right {
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    /* Prevent pull-to-refresh on mobile */
+    body {
+      overscroll-behavior-y: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Remove tap highlight on mobile */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    /* Disable text selection on interactive elements */
+    button,
+    a,
+    [role="button"] {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Allow text selection in messages */
+    .emoji-text,
+    [class*="break-words"] {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    /* Mobile scrollbar hiding */
+    @media (max-width: 768px) {
+      ::-webkit-scrollbar {
+        display: none;
       }
 
-      ::-webkit-scrollbar { width: 5px; height: 5px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
-      .dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.3); }
-      .dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+      * {
+        scrollbar-width: none;
+      }
 
-      .glass-panel {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(0, 0, 0, 0.05);
+      /* Smooth momentum scrolling */
+      .overflow-y-auto,
+      .overflow-y-scroll {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
       }
-      .dark .glass-panel {
-        /* Premium Dark Mode - Batman Style */
-        background: rgba(15, 20, 35, 0.6); 
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+      /* Fix input zoom on iOS */
+      input,
+      textarea,
+      select {
+        font-size: 16px !important;
       }
-      
-      .glass-input {
-        background: rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(0, 0, 0, 0.1);
+
+      /* Optimize touch targets */
+      button,
+      a,
+      [role="button"] {
+        min-height: 36px;
+        min-width: 36px;
       }
-      .dark .glass-input {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+
+      /* Fix bottom input area above phone navbar */
+      .input-safe-area {
+        padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px);
       }
-      
-      .glass-header {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(10px);
+    }
+
+    /* Fix for fixed elements on iOS */
+    @supports (-webkit-touch-callout: none) {
+      .fixed {
+        position: -webkit-sticky;
+        position: fixed;
       }
-      .dark .glass-header {
-         background: rgba(0, 0, 0, 0.4);
-         backdrop-filter: blur(15px);
-         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      }
-      
-      /* Emoji rendering fixes for all browsers */
-      @supports (font-variant-emoji: emoji) {
-        * {
-          font-variant-emoji: emoji;
-        }
-      }
-      
-      /* Ensure proper emoji rendering in all contexts */
-      textarea, input, div, span, p {
-        font-variant-emoji: emoji;
-        text-rendering: optimizeLegibility;
-      }
-      
-      /* Fix for Windows emoji rendering */
-      @media screen and (-webkit-min-device-pixel-ratio: 0) {
-        .emoji-text {
-          -webkit-font-feature-settings: "liga", "kern";
-          font-feature-settings: "liga", "kern";
-        }
-      }
-      
-      /* Fix for timestamp display - normal text, no boxes - STRONG OVERRIDE */
-      span[class*="text-\[10\.5px\]"],
-      span[class*="text-\[11px\]"],
-      span[class*="text-\[10px\]"],
-      span[class*="text-\[9px\]"],
-      span[class*="text-gray-500"],
-      span[class*="text-gray-400"],
-      span[class*="text-gray-500"] *,
-      span[class*="text-gray-400"] * {
-        font-variant-numeric: normal !important;
-        font-feature-settings: normal !important;
-        font-variant-ligatures: normal !important;
-        font-kerning: normal !important;
-        letter-spacing: normal !important;
-        word-spacing: normal !important;
-        text-transform: none !important;
-        font-stretch: normal !important;
-        display: inline !important;
-        white-space: nowrap !important;
-        -webkit-font-feature-settings: normal !important;
-        -moz-font-feature-settings: normal !important;
-        -ms-font-feature-settings: normal !important;
-        font-variant: normal !important;
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        box-shadow: none !important;
-        outline: none !important;
-      }
-      
-      /* Remove any box styling from numbers - ALL POSSIBLE SELECTORS */
-      span[class*="text-gray-500"]::before,
-      span[class*="text-gray-400"]::before,
-      span[class*="text-gray-500"]::after,
-      span[class*="text-gray-400"]::after,
-      span[class*="text-\[10\.5px\]"]::before,
-      span[class*="text-\[10\.5px\]"]::after {
-        display: none !important;
-        content: none !important;
-        background: transparent !important;
-        border: none !important;
-      }
-      
-      /* Override any Tailwind numeric classes */
-      .tabular-nums,
-      [class*="tabular"],
-      [class*="oldstyle"] {
-        font-variant-numeric: normal !important;
-        font-feature-settings: normal !important;
-      }
-      
-      /* Twemoji styling to match text size */
-      img.emoji {
-         height: 1.25em;
-         width: 1.25em;
-         margin: 0 .05em 0 .1em;
-         vertical-align: -0.2em;
-         display: inline-block;
-      }
-      /* Ensure giant emojis for emoji-only messages remain large */
-      .text-6xl img.emoji {
-         height: 1em;
-         width: 1em;
-         margin: 0;
-         vertical-align: baseline;
-      }
-    </style>
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -424,10 +564,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="text-gray-900 dark:text-gray-100 antialiased selection:bg-blue-600/30 selection:text-white">
-    <div id="root" class="relative z-10 h-screen w-screen overflow-hidden"></div>
+
+<body class="text-gray-900 dark:text-gray-100 antialiased selection:bg-blue-600/30 selection:text-white">
+  <div id="root" class="relative z-10 h-[100dvh] w-screen overflow-hidden safe-top safe-bottom"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
