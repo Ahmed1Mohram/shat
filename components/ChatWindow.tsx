@@ -365,8 +365,11 @@ export const ChatWindow: React.FC = () => {
               const replyToMsg = msg.replyTo ? messages.find(m => m.id === msg.replyTo) : undefined;
               const isActiveMatch = searchQuery.trim().length > 0 && matchedIds[searchMatchIndex] === msg.id;
               return (
-                <div
+                <motion.div
                   key={msg.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
                   ref={el => { messageRefs.current[msg.id] = el; }}
                   className={isActiveMatch ? 'rounded-2xl ring-2 ring-violet-400/60 ring-offset-1 ring-offset-transparent transition-all duration-300' : ''}
                 >
@@ -379,7 +382,7 @@ export const ChatWindow: React.FC = () => {
                     isGroup={conversation?.isGroup || false}
                     searchQuery={searchQuery}
                   />
-                </div>
+                </motion.div>
               );
             })
           )}
