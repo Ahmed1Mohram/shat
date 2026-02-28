@@ -32,6 +32,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         conversationsRef.current = conversations;
     }, [conversations]);
 
+    // CRITICAL: Use a ref to track current conversation ID inside realtime callbacks
+    // This prevents the need to re-subscribe every time a chat is selected
+    const currentConvIdRef = useRef<string | null>(null);
+    useEffect(() => {
+        currentConvIdRef.current = currentConversationId;
+    }, [currentConversationId]);
+
     // Notification Settings
     const [showNotificationContent, setShowNotificationContent] = useState(() => {
         const saved = localStorage.getItem('notif_show_content');
@@ -50,21 +57,26 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, []);
 
-    // Notification sound using Web Audio API
+    // WhatsApp-style double-pop notification sound
     const playNotificationSound = () => {
         try {
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-            oscillator.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.4);
+            const playPop = (startTime: number) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1320, startTime);
+                osc.frequency.exponentialRampToValueAtTime(880, startTime + 0.08);
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.35, startTime + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+                osc.start(startTime);
+                osc.stop(startTime + 0.12);
+            };
+            playPop(audioCtx.currentTime);
+            playPop(audioCtx.currentTime + 0.15); // second pop for WhatsApp feel
         } catch (e) { /* Audio not available */ }
     };
 
@@ -258,7 +270,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setStories(sts);
                 setFriends(fnds);
 
-                if (convs.length > 0 && !currentConversationId && window.innerWidth >= 768) {
+                if (convs.length > 0 && !currentConvIdRef.current && window.innerWidth >= 768) {
                     selectConversation(convs[0].id);
                 }
             } catch (error) {
@@ -273,13 +285,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const signalingChannel = supabase.channel(`signaling_${user.id}`);
         signalingChannel
             .on('broadcast', { event: 'call-offer' }, async ({ payload }) => {
-                // Incoming Call
-                if (activeCall) return; // Busy
-
-                // Initialize PC early to handle Offer
+                if (activeCall) return;
                 const pc = initializePeerConnection();
                 await pc.setRemoteDescription(new RTCSessionDescription(payload.offer));
-
                 setActiveCall({
                     id: payload.callId,
                     caller: payload.caller,
@@ -289,7 +297,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 });
             })
             .on('broadcast', { event: 'call-answer' }, async ({ payload }) => {
-                // Answer Received (Caller side)
                 if (peerConnectionRef.current) {
                     await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(payload.answer));
                     setActiveCall(prev => prev ? { ...prev, status: 'connected', startedAt: Date.now() } : null);
@@ -303,7 +310,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
             })
             .on('broadcast', { event: 'end-call' }, () => {
-                // Cleanup without sending another end signal
                 if (localStream) {
                     localStream.getTracks().forEach(track => track.stop());
                     setLocalStream(null);
@@ -319,9 +325,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .subscribe();
 
 
-        // 2. Chat Data Subscriptions
+        // 2. Chat Data Subscriptions — PERSISTENT, never reconnects on chat switch
         const msgSub = supabaseService.subscribeToMessages((msg) => {
-            if (currentConversationId === msg.conversationId) {
+            // Use ref to read current conversation WITHOUT being in deps array
+            const activeChatId = currentConvIdRef.current;
+
+            if (activeChatId === msg.conversationId) {
                 setMessages(prev => {
                     const existingIndex = prev.findIndex(m => m.id === msg.id);
                     if (existingIndex > -1) {
@@ -332,25 +341,34 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     return [...prev, msg];
                 });
                 if (msg.senderId !== user.id && msg.status !== 'seen') {
-                    supabaseService.markMessagesAsSeen(currentConversationId, user.id);
+                    supabaseService.markMessagesAsSeen(activeChatId, user.id);
                 }
             }
+
             setConversations(prev => {
                 const exists = prev.find(c => c.id === msg.conversationId);
                 if (exists) {
-                    return prev.map(c => c.id === msg.conversationId ? {
+                    const updated = prev.map(c => c.id === msg.conversationId ? {
                         ...c,
                         lastMessage: msg,
-                        unreadCount: (currentConversationId === msg.conversationId) ? 0 : (msg.senderId !== user.id && msg.status !== 'seen' ? c.unreadCount + 1 : c.unreadCount)
+                        unreadCount: (activeChatId === msg.conversationId) ? 0 : (msg.senderId !== user.id && msg.status !== 'seen' ? c.unreadCount + 1 : c.unreadCount)
                     } : c);
+                    // Move the updated conversation to top (WhatsApp/Instagram style)
+                    const idx = updated.findIndex(c => c.id === msg.conversationId);
+                    if (idx > 0) {
+                        const [item] = updated.splice(idx, 1);
+                        updated.unshift(item);
+                    }
+                    return updated;
                 } else {
                     loadData();
                     return prev;
                 }
             });
-            if (msg.senderId !== user.id && msg.status === 'sent' && currentConversationId !== msg.conversationId) {
+
+            // Notification for messages in OTHER conversations
+            if (msg.senderId !== user.id && msg.status === 'sent' && activeChatId !== msg.conversationId) {
                 supabaseService.markMessagesAsDelivered(msg.conversationId, user.id);
-                // Show notification toast for new message
                 const conversation = conversationsRef.current.find(c => c.id === msg.conversationId);
                 const sender = conversation?.participants.find(p => p.id === msg.senderId) || conversation?.participants[0];
                 toast((t) => (
@@ -375,8 +393,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     },
                 });
-
-                // Browser push notification with sound (even if tab is focused if user wants, but browser restricts without focus sometimes. We'll play the sound regardless)
                 showBrowserNotification(
                     sender?.username || 'New Message',
                     sender?.avatar || '/cae1afd7f0f92784a8fb32251f4ed8f0.jpg',
@@ -413,7 +429,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             supabase.removeChannel(userStatusSub);
             supabaseService.logout(user.id);
         };
-    }, [user, currentConversationId]);
+        // ONLY depends on user — subscriptions are permanent per session
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
 
     const selectConversation = async (id: string) => {
         setCurrentConversationId(id);
@@ -914,7 +932,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             remoteStream,
             // Notification Settings
             showNotificationContent,
-            setShowNotificationContent
+            setShowNotificationContent,
+            // Typing Indicator
+            sendTyping: (isTyping: boolean) => {
+                if (currentConversationId) {
+                    supabaseService.sendTyping(currentConversationId, isTyping);
+                }
+            }
         }}>
             {children}
         </ChatContext.Provider>

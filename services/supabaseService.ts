@@ -319,13 +319,22 @@ export class SupabaseService {
       else conv.unreadCount = row.unread_count || 0;
     });
 
-    return Array.from(conversationsMap.values()).map(c => {
+    const result = Array.from(conversationsMap.values()).map(c => {
       if (c.participants.length === 0) {
         const selfRow = allParticipants?.find((p: any) => p.conversation_id === c.id && p.users?.id === userId);
         if (selfRow) c.participants.push(this.mapUser(selfRow.users));
       }
       return c;
     });
+
+    // Sort: conversations with most recent messages appear first (WhatsApp style)
+    result.sort((a, b) => {
+      const aTime = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+      const bTime = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
+
+    return result;
   }
 
   async createConversation(userId: string, targetUserId: string): Promise<string> {
@@ -410,7 +419,12 @@ export class SupabaseService {
     return supabase.channel('public:messages')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, async (payload) => {
         if (payload.eventType === 'INSERT') {
-          const { data } = await supabase.from('messages').select('*, attachments(*)').eq('id', payload.new.id).single();
+          // Always fetch full message with attachments — don't trust payload.new alone
+          const { data } = await supabase
+            .from('messages')
+            .select('*, attachments(*)')
+            .eq('id', payload.new.id)
+            .single();
           if (data) callback(this.mapMessage(data));
           else callback(this.mapMessage(payload.new));
         } else if (payload.eventType === 'UPDATE') {
@@ -420,15 +434,21 @@ export class SupabaseService {
       }).subscribe();
   }
 
+  private _typingChannel: any = null;
+
   subscribeToTyping(callback: (payload: any) => void) {
     return supabase.channel('typing_room').on('broadcast', { event: 'typing' }, payload => callback(payload.payload)).subscribe();
   }
 
   async sendTyping(conversationId: string, isTyping: boolean) {
-    const channel = supabase.channel('typing_room');
-    await channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') await channel.send({ type: 'broadcast', event: 'typing', payload: { conversationId, isTyping } });
-    });
+    // Reuse the typing channel instead of creating a new one on each keystroke
+    if (!this._typingChannel) {
+      this._typingChannel = supabase.channel('typing_room');
+      await new Promise<void>(resolve => {
+        this._typingChannel.subscribe((status: string) => { if (status === 'SUBSCRIBED') resolve(); });
+      });
+    }
+    await this._typingChannel.send({ type: 'broadcast', event: 'typing', payload: { conversationId, isTyping } });
   }
 
   subscribeToStories(callback: (story: Story) => void) {

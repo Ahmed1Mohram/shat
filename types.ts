@@ -170,6 +170,8 @@ export interface ChatContextType {
   // Notification Settings
   showNotificationContent: boolean;
   setShowNotificationContent: (value: boolean) => void;
+  // Typing Indicator
+  sendTyping: (isTyping: boolean) => void;
 }
 
 export interface ThemeContextType {

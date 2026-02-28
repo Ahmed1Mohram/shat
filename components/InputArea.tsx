@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 export const InputArea: React.FC = () => {
-  const { sendMessage, replyToMessage, messages, currentConversationId, conversations } = useChat();
+  const { sendMessage, replyToMessage, messages, currentConversationId, conversations, sendTyping } = useChat();
   const conversation = conversations.find(c => c.id === currentConversationId);
   const isVanishMode = conversation?.isVanishMode || false;
   const { theme } = useTheme();
@@ -54,6 +54,8 @@ export const InputArea: React.FC = () => {
   const activeStreamsRef = useRef<MediaStream[]>([]);
   const [recordSystemAudio, setRecordSystemAudio] = useState(false);
   const [isHdMic, setIsHdMic] = useState(false);
+  // Typing indicator debounce timer
+  const typingTimerRef = useRef<any>(null);
 
   useEffect(() => {
     return () => {
@@ -106,13 +108,26 @@ export const InputArea: React.FC = () => {
       await sendMessage(text, filesToSend);
     }
 
-    // Reset state
+    // Reset state + stop typing signal
     setText('');
     setAttachments([]);
     setAudioBlob(null);
     setShowEmoji(false);
     setIsPlayingPreview(false);
     setIsViewOnce(false);
+    // Clear typing timer and signal stopped
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    sendTyping(false);
+  };
+
+  // Handle text changes with typing indicator
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    // Signal typing started
+    sendTyping(true);
+    // Auto-stop after 2s of inactivity
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => sendTyping(false), 2000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -539,7 +554,7 @@ export const InputArea: React.FC = () => {
           <textarea
             value={text}
             onChange={(e) => {
-              setText(e.target.value);
+              handleTextChange(e);
               // Auto-grow
               e.target.style.height = 'auto';
               e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
